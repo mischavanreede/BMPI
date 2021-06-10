@@ -1,0 +1,124 @@
+version: '3.9'
+
+services:
+    # Elasticsearch: https://www.elastic.co/guide/en/elasticsearch/reference/current/docker.html
+    # https://hub.docker.com/r/blacktop/elasticsearch
+    # Set passwords on linux: https://www.youtube.com/watch?v=E-kwK88Vxzk&list=PL4Kk-UTQN84doEerRyIW6GjO7-vLoM-Yc&index=9
+    # Useful docker commands: https://blog.softwaremill.com/how-to-keep-your-docker-installation-clean-98a74eb7e7b3
+    #Local Volume location: \\wsl$\docker-desktop-data\version-pack-data\community\docker\volumes
+    elasticsearch:
+        image: blacktop/elasticsearch:x-pack-7.10.2
+        #image: blacktop/elasticsearch:7.10
+        container_name: elasticsearch
+        environment:         
+#            - node.name=es01
+            - cluster.name=docker-cluster
+            - discovery.type=single-node
+            - bootstrap.memory_lock=true
+            - http.cors.enabled=true
+            - http.cors.allow-origin=*
+            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+            - ELASTIC_USERNAME=elastic
+            - ELASTIC_PASSWORD=LfcLo2lDNCHkzwOWI50A
+            - xpack.security.audit.enabled=true
+            - xpack.security.enabled=true
+            - node.master=true
+        ulimits:
+          memlock:
+            soft: -1
+            hard: -1
+          nofile:
+            soft: 65536
+            hard: 65536
+        cap_add:
+          - ALL
+        volumes:
+          - "./../data/esdata1:/usr/share/elasticsearch/data"
+        ports:
+          - 9200:9200
+          - 9300:9300
+        networks:
+          - es_network
+        logging:
+         driver: "json-file"
+         options:
+          # limit logs retained on host to 25MB
+          max-size: "500k"
+          max-file: "5"
+
+
+    # elasticsearch2:
+    #     image: blacktop/elasticsearch:x-pack-7.10.2
+    #     container_name: elasticsearch2
+    #     environment:         
+    #         - node.name=es02
+    #         - cluster.name=docker-cluster
+    #         - bootstrap.memory_lock=true
+    #         - http.cors.enabled=true
+    #         - http.cors.allow-origin=*
+    #         - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    #         - ELASTIC_PASSWORD=pleasechangeme
+    #         - xpack.security.audit.enabled=true
+    #         - node.master=true
+    #         - "discovery.zen.ping.unicast.hosts=elasticsearch"        
+    #     depends_on:
+    #         - elasticsearch
+    #     ulimits:
+    #       memlock:
+    #         soft: -1
+    #         hard: -1
+    #       nofile:
+    #         soft: 65536
+    #         hard: 65536
+    #     cap_add:
+    #       - ALL
+    #     volumes:
+    #       - esdata2:/usr/share/elasticsearch/data
+    #     networks:
+    #       - es_network
+    #     logging:
+    #      driver: "json-file"
+    #      options:
+    #       # limit logs retained on host to 25MB
+    #       max-size: "500k"
+    #       max-file: "5"
+    
+    
+    # https://hub.docker.com/r/blacktop/kibana    
+    kibana:
+      image: blacktop/kibana:x-pack
+      container_name: kibana
+      environment:
+        - SERVER_NAME:'localhost'
+        - ELASTICSEARCH_URL:http://elasticsearch:9200
+        - ELASTICSEARCH_HOSTS:http://elasticsearch:9200
+        - XPACK_MONITORING_ENABLED:"true"
+        - elasticsearch.username=elastic
+        - elasticsearch.password=LfcLo2lDNCHkzwOWI50A
+      depends_on:
+          - elasticsearch
+      restart: on-failure
+      ports:
+        - 5601:5601
+      networks:
+        - es_network
+      ulimits:
+        memlock:
+          soft: -1
+          hard: -1
+      logging:
+       driver: "json-file"
+       options:
+        # limit logs retained on host to 25MB
+        max-size: "500k"
+        max-file: "5"
+        
+# volumes:
+#   "./esdata1":
+#     driver: local
+#   # esdata2:
+#     # driver: local
+    
+networks:
+  es_network:
+    driver: bridge
