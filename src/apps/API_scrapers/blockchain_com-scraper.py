@@ -25,9 +25,8 @@ Expample urls:
 
 """
 
-import requests
 
-from .generic_rest_requests import RestRequests
+from generic_rest_requests import RestRequests
 
 
 class BlockchainScraper(RestRequests):
@@ -93,17 +92,18 @@ class BlockchainScraper(RestRequests):
 
     
 
-a = BlockchainScraper()
+a = BlockchainScraper(None, None)
 
 # genesis_message = bytes.fromhex(a.getGenesisBlock()['tx'][0]['inputs'][0]['script']).decode(encoding="utf-8", errors='ignore')
 
-# latest_hash = a.getLatestBlockHash()
-# message = a.extractBlockMessage(latest_hash)
-#print(bytes.fromhex(message).decode('ascii', 'ignore'))
+latest_hash = a.getLatestBlockHash()
+message = a.extractBlockMessage(latest_hash)
+print(message)
+print(bytes.fromhex(message).decode('ascii', 'ignore'))
 
 
 # print(message)
 # print(bytes.fromhex(message).decode(encoding="utf-8", errors='ignore'))
 
-print(a.getLatestBlock())
+# print(a.getLatestBlock())
 

@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Jun 10 11:11:13 2021
+This file contains utility methods that are used by the various modules of this application.
 
-@author: Dukadu
+@author: Mischa van Reede
 """
 
 import os

@@ -71,7 +71,7 @@ class RestRequests:
             r.raise_for_status()
 
             if r.status_code == 200:
-                self.logger.debug("Received response from url : [{}]".format(url))
+                # self.logger.debug("Received response from url : [{}]".format(url))
                 result = r.json()
                 return result
             else:
