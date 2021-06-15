@@ -2,7 +2,10 @@
 """
 Created on Wed Jun  9 15:09:53 2021
 
-@author: Dukadu
+@author: Mischa van Reede
+
+https://www.nylas.com/blog/use-python-requests-module-rest-apis/
+
 """
 
 import requests   #Documentation: https://pypi.org/project/requests/ ; https://docs.python-requests.org/en/master/user/quickstart/#passing-parameters-in-urls
@@ -13,6 +16,8 @@ class RestRequests:
     
     """
     A generic class that can issue REST requests.
+    
+    Only implemented GET requests for now.
     
     """
     
@@ -72,8 +77,7 @@ class RestRequests:
 
             if r.status_code == 200:
                 # self.logger.debug("Received response from url : [{}]".format(url))
-                result = r.json()
-                return result
+                return r.json()
             else:
                 print("Error: received no response from url : [{}]".format(url))
                 return None

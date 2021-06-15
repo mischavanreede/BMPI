@@ -82,7 +82,7 @@ services:
     #       # limit logs retained on host to 25MB
     #       max-size: "500k"
     #       max-file: "5"
-    
+  
     
     # https://hub.docker.com/r/blacktop/kibana    
     kibana:

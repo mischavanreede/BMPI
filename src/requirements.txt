@@ -1,2 +1,4 @@
 requests==2.25.1
 blockchain==1.4.4
+elasticsearch==7.10.1
+elasticsearch-dsl==7.3.0
