@@ -18,6 +18,7 @@ https://www.youtube.com/watch?v=hzRP48OQsxE
 
 import sys
 import time
+import elasticsearch
 from elasticsearch import Elasticsearch
 from elasticsearch import helpers
 from elasticsearch_dsl import Search
@@ -46,8 +47,7 @@ class ElasticsearchController():
         -------
         es : Elasticsearch Object connected to running ES instance
 
-        """
-        
+        """        
         es_host = self.config.get('Elasticsearch', 'elasticsearch_host')
         es_port = self.config.get('Elasticsearch', 'elasticsearch_port')
         credentials = {'http_auth': (self.config.get('Elasticsearch', 'user'), self.config.get('Elasticsearch', 'password'))}
@@ -68,15 +68,21 @@ class ElasticsearchController():
     def __create_all_indices(self):
         """
         Attempts to create all specified indices in the elasticsearch instance. Skips indices that already exist.
-
+        TODO: Add settings for each index
+    
         Returns
         -------
         None.
 
-        """        
-        self.__create_first_indices()
+        """
+        index_names = ["first_index"]
+        self.logger.info("Checking if the following indices need to be created: {}".format(index_names))
         
-        self.logger.info("Elasticsearch indices initialized")
+        for index in index_names:
+            # Create needed databases/indices
+            if not self.__index_exists(index):
+                self.__create_index(index_name=index, settings = None)        
+        self.logger.info("All indices have been created.")
     
     #============================================
     # Methods for interacting with the instance
@@ -98,8 +104,7 @@ class ElasticsearchController():
         -------
         is_stored : Boolean
             True if record is stored succesfully.
-        """
-            
+        """            
         try_count = 0
         max_tries = 5
         while True:
@@ -121,11 +126,31 @@ class ElasticsearchController():
                     is_stored = False
                     break
         return is_stored
+    
+    def bulk_store(self, records, index_name, doc_type):
+        """
+        Stores many records in one go.
+
+        Parameters
+        ----------
+        records : TYPE
+            DESCRIPTION.
+        index_name : TYPE
+            DESCRIPTION.
+        doc_type : TYPE
+            DESCRIPTION.
+
+        Returns
+        -------
+        None.
+
+        """
+        pass
 
     
     
-    def query_es(self, index, query):
-        search_context = Search(using=self.es_connection, index=index, doc_type=query)
+    def query_es(self, index, query, doc_type):
+        search_context = Search(using=self.es_connection, index=index, doc_type=doc_type)
         s = search_context.query('query_string', query=query)
         response = s.execute()
         if response.success():
@@ -136,17 +161,27 @@ class ElasticsearchController():
             #return response['hits']['hits']
             # Complete response
             self.logger.debug("ES Query [{}] on index [{}] sucessful. Returning response object.".format(query, index))
-            return response
+            return response['hits']['hits']
         
         self.logger.error("ES Query failed. Returning None.")
-        return None     
-            
+        return None
+
+    def isConnected(self):
+        connected = False
+        self.logger.debug("Checking if es_connection is connected to an Elasticsearch instance.")
+        if self.es_connection.ping():
+            self.logger.debug("The object es_connection is connected to an Elasticsearch instance.")
+            connected = True
+            return connected
+        self.logger.error("There is no connection to the elasticsearch instance.")
+        self.logger.error("Is the elasticsearch instance running?")
+        return connected    
     
     #============================================
     # Indices
     #============================================    
     
-    def __create_first_indices(self):
+    def __create_index(self, index_name, settings):
         """
             Create index and mapping for index Crawl Peer Info
 
@@ -156,22 +191,37 @@ class ElasticsearchController():
             Return True if index was succesfully created, or when the index already existed.
 
         """
-        index_name = "first_index"
-        created = False
-        # index settings
-        # settings = {
-        #     # TODO insert
-            
-        #     }
-
         try:
-            if not self.es_connection.indices.exists(index_name):
-                self.logger.debug("Creating Index : [{}]".format(index_name))
-                # Ignore 400 means to ignore "Index Already Exist" error.
-                self.es_connection.indices.create(index=index_name, ignore=400) # self.es.indices.create(index=index_name, ignore=400, body=settings)
-                self.logger.debug("Created Index : [{}]".format(index_name))
-            created = True
+            # Ignore 400 means to ignore "Index Already Exist" error.
+            self.es_connection.indices.create(index=index_name, ignore=400) # self.es.indices.create(index=index_name, ignore=400, body=settings)
+            self.logger.debug("Created index: [{}]".format(index_name))
+
         except Exception as e:
             self.logger.error("Error on index creation : {}".format(str(e)))
         finally:
-            return created
+            return
+    
+    def __index_exists(self, index_name):
+        # Check whether or not the specified index exists in the ES instance.
+               
+        try:
+            if self.es_connection.indices.exists(index=index_name):
+                self.logger.debug("Index with name [{}] already exists.".format(index_name))
+                return True
+            self.logger.info("Index with name [{}] was not found.".format(index_name))
+            return False
+        except elasticsearch.exceptions.NotFoundError as e:
+            self.logger.info("Index with name [{}] was not found.".format(index_name))
+            self.logger.error("Error message: {}".format(e))
+            return False
+        except Exception as e:
+            self.logger.exception("An error has occurred: {}".format(e))
+        
+        
+    def __delete_database_index(self, index_name):
+        # Delete specified index from ES instance, maybe add { ignore=[400, 404] }  as argument if there are errors.
+        self.logger.info("Deleting index [{}]".format(index_name))
+        self.es_connection.indices.delete(index=index_name)
+        self.logger.info("Index with name [{}] deleted".format(index_name))
+    
+    

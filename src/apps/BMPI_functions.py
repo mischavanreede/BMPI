@@ -21,8 +21,10 @@ class BMPIFunctions():
         self.config = config
         self.es_controller = None
         self.blockchain_scraper = None
+        self.__initialize_modules()
 
-    def initialize_modules(self):
+    def __initialize_modules(self):
+        
         
         self.es_controller = ElasticsearchController(config=self.config, logger=self.logger)
         
@@ -31,7 +33,10 @@ class BMPIFunctions():
         
     def store_most_recent_block_in_es(self):
         
-        self.initialize_modules()
+        # Make sure the controller is connected to a running ES instance
+        assert(self.es_controller.isConnected())
+        
+        
         
         block = self.blockchain_scraper.getLatestBlock()
         #remove tx for now
@@ -43,16 +48,63 @@ class BMPIFunctions():
         
         #store record
         
+        self.es_controller.store(record=block, index_name="first_index", doc_type='block')
         self.logger.info("Block [{}] at height [{}] stored succesfully".format(block_hash, block['height']))
-        self.es_controller.store(record=block, index_name="first_index")
         
-        #query record
+        #query data record
         self.logger.info("Quering block with hash [{}] from es instance".format(block_hash))
+        result = self.es_controller.query_es(index="first_index", query=block_hash, doc_type='block')
+        self.logger.info("Got the following result: [{}]".format(result))
         
-        match = self.es_controller.query_es(index="first_index", query=block_hash)
-        
-        print("Obtained most recent block from ES instance")
-        
-        print(json.dumps(match.to_dict(), indent=2))
 
+        print(result)
         
+
+    def store_last_n_blocks_in_es(self, n=1):
+        assert (n>0)
+        blocks = []
+        latest_block_height = self.blockchain_scraper.getLatestBlockHeight()
+        latest_blocks = self.blockchain_scraper.getBlocksAtHeight(block_height=latest_block_height)
+        
+        if len(latest_blocks) != 1:
+            # TODO: implement this scenario
+            print("Found multiple blocks at height: {}".format(latest_block_height))
+            return
+        else:    
+            latest_block = latest_blocks[0]
+            latest_block = self.blockchain_scraper.pruneUserTransactionsFromBlock(latest_block)
+            latest_block['mining_message'] = self.blockchain_scraper.extractBlockMessage(latest_block)
+            prev_block_hash = self.blockchain_scraper.extractPrevBlockHash(latest_block)
+            blocks.append(latest_block)
+            n-=1
+            
+            while n>0:
+                prev_block = self.blockchain_scraper.getBlock(prev_block_hash)    
+                prev_block = self.blockchain_scraper.pruneUserTransactionsFromBlock(prev_block)
+                prev_block['mining_message'] = self.blockchain_scraper.extractBlockMessage(prev_block)
+                prev_block_hash = self.blockchain_scraper.extractPrevBlockHash(prev_block)
+                blocks.append(prev_block)
+                n-=1
+        
+        self.logger.info("finished gathering last n={} blocks".format(n))
+          # store blocks
+        self.es_controller.bulk_store(records=blocks, index_name='blocks', doc_type='block')
+        
+        
+"""
+
+
+
+make setting for blocks, include mining message, trim unnecessary information
+
+store the last n blocks in es
+
+make bulk insert
+
+
+
+
+
+
+
+"""

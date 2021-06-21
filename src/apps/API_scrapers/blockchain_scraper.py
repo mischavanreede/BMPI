@@ -57,7 +57,8 @@ class BlockchainScraper(RestRequests):
         self.timeout = 5 #DefaultTimeout is 10 seconds
         self.config = config
         self.logger = logger
-        super().__init__(config=self.config, logger=self.logger) # Initialize RestRequest object from parent class
+        # Initialize RestRequest object from parent class
+        super().__init__(config=self.config, logger=self.logger)
                 
 # ====================================   
 #  API query methods 
@@ -188,24 +189,22 @@ class BlockchainScraper(RestRequests):
     
     def getBlocksAtHeight(self, block_height):
         """
+        Returns an array Of Blocks at the specified height.
         
         Parameters
         ----------
-        block_height : TYPE
-            DESCRIPTION.
+        block_height : int
+            height in the bitcoin blockchain.
 
         Returns
         -------
-        result : TYPE
-            DESCRIPTION.
-            
+        result : dict            
             Example result:
                 {
                   "blocks": [
                     "--Array Of Blocks at the specified height--"
                   ]
                 }
-
         """
         assert isinstance(block_height, int)
         
@@ -216,11 +215,6 @@ class BlockchainScraper(RestRequests):
     def getAddressInfo(self, bitcoin_address):
         """
         TODO implement limit & offset when there are more than 50 transactions
-
-        Parameters
-        ----------
-        bitcoin_address : TYPE
-            DESCRIPTION.
 
         Returns
         -------
@@ -264,44 +258,40 @@ class BlockchainScraper(RestRequests):
         return bytes.fromhex(hex_string).decode('ascii', 'ignore')
         
     
+    def extractPrevBlockHash(self, block):
+        """
+        Extracts the hash of the preceding block from any given block.
+        """
+        prev_hash = block['prev_hash']
+        return prev_hash
+    
     def extractBlockMessage(self, block):
         """
+        Extracts the miners' message from a block and transforms it from a hex 
+        string to an Ascii string.
         Mining data in block dict ->   tx/0/inputs/0/script: 
-
-        Parameters
-        ----------
-        block : TYPE
-            DESCRIPTION.
 
         Returns
         -------
-        message : TYPE
-            DESCRIPTION.
-
+        message : str
         """
-        message = block['tx'][0]['inputs'][0]['script']
-        return message
+        hex_string = block['tx'][0]['inputs'][0]['script']
+        return self.hexStringToAscii(hex_string)
 
-    def formatObjectToJson(self, data_object, indent=4):
-        return json.dumps(data_object, indent)
+    def pruneUserTransactionsFromBlock(self, block):
+        """
+        Removes all transactions from a block exept the coinbase transaction. 
 
-
-
-a = BlockchainScraper(None, None)
-
-
-# latest_block = a.getLatestBlock()
-
-# msg = a.extractBlockMessage(latest_block)
-
-
-# latest_block.pop('tx')
-
-# print(latest_block)
-# print(msg)
-
-# json_obj = json.dumps(result, indent=4)
-# print(json_obj)
+        Returns
+        -------
+        block : dict
+            Returns a block with all user transactions removed
+        """
+        # Keep first transaction (= coinbase transaction), remove the rest.
+        block['tx'] = block['tx'][0]
+        return block
+        
+        
 
     
     

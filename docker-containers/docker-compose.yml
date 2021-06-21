@@ -5,7 +5,7 @@ services:
     # https://hub.docker.com/r/blacktop/elasticsearch
     # Set passwords on linux: https://www.youtube.com/watch?v=E-kwK88Vxzk&list=PL4Kk-UTQN84doEerRyIW6GjO7-vLoM-Yc&index=9
     # Useful docker commands: https://blog.softwaremill.com/how-to-keep-your-docker-installation-clean-98a74eb7e7b3
-    #Local Volume location: \\wsl$\docker-desktop-data\version-pack-data\community\docker\volumes
+    # Local Volume location: \\wsl$\docker-desktop-data\version-pack-data\community\docker\volumes
     elasticsearch:
         image: blacktop/elasticsearch:x-pack-7.10.2
         #image: blacktop/elasticsearch:7.10
@@ -13,6 +13,7 @@ services:
         environment:         
 #            - node.name=es01
             - cluster.name=docker-cluster
+            - node.master=true
             - discovery.type=single-node
             - bootstrap.memory_lock=true
             - http.cors.enabled=true
@@ -22,7 +23,8 @@ services:
             - ELASTIC_PASSWORD=LfcLo2lDNCHkzwOWI50A
             - xpack.security.audit.enabled=true
             - xpack.security.enabled=true
-            - node.master=true
+            - xpack.security.authc.api_key.enabled=true
+
         ulimits:
           memlock:
             soft: -1
@@ -86,7 +88,7 @@ services:
     
     # https://hub.docker.com/r/blacktop/kibana    
     kibana:
-      image: blacktop/kibana:x-pack
+      image: blacktop/kibana:x-pack-7.10.2
       container_name: kibana
       environment:
         - SERVER_NAME:'localhost'
@@ -95,6 +97,8 @@ services:
         - XPACK_MONITORING_ENABLED:"true"
         - elasticsearch.username=elastic
         - elasticsearch.password=LfcLo2lDNCHkzwOWI50A
+        - xpack.security.enabled=true
+        - xpack.encryptedSavedObjects.encryptionKey="something_at_least_32_characters"
       depends_on:
           - elasticsearch
       restart: on-failure

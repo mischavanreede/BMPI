@@ -1,6 +1,6 @@
 Bitcoin core Docker container: https://github.com/ruimarinho/docker-bitcoin-core
 
-
+# TODO: create .env file to avoid having the elastic search credentials in both /docker-containers/docker-compose.yml and here (settings.conf)
 
 Set vm.max_map_count to 262144:
 https://stackoverflow.com/questions/42111566/elasticsearch-in-windows-docker-image-vm-max-map-count
