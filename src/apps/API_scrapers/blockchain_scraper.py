@@ -189,7 +189,7 @@ class BlockchainScraper(RestRequests):
     
     def getBlocksAtHeight(self, block_height):
         """
-        Returns an array Of Blocks at the specified height.
+        Returns a list of Blocks at the specified height.
         
         Parameters
         ----------
@@ -198,9 +198,9 @@ class BlockchainScraper(RestRequests):
 
         Returns
         -------
-        result : dict            
-            Example result:
-                {
+        result : list            
+            Example result from get request, returns the 'blocks' list:
+                result = {
                   "blocks": [
                     "--Array Of Blocks at the specified height--"
                   ]
@@ -210,7 +210,7 @@ class BlockchainScraper(RestRequests):
         
         block_height_url = self.base_url + "block-height/" + str(block_height) + "?format=json"
         result = self.get(block_height_url)
-        return result
+        return result['blocks']
     
     def getAddressInfo(self, bitcoin_address):
         """
@@ -218,9 +218,7 @@ class BlockchainScraper(RestRequests):
 
         Returns
         -------
-        result : TYPE
-            DESCRIPTION.
-            
+        result : dict            
             Example result:
                 {
                   "hash160": "660d4ef3a743e3e696ad990364e555c271ad504b",
@@ -262,7 +260,7 @@ class BlockchainScraper(RestRequests):
         """
         Extracts the hash of the preceding block from any given block.
         """
-        prev_hash = block['prev_hash']
+        prev_hash = block['prev_block']
         return prev_hash
     
     def extractBlockMessage(self, block):
@@ -288,7 +286,9 @@ class BlockchainScraper(RestRequests):
             Returns a block with all user transactions removed
         """
         # Keep first transaction (= coinbase transaction), remove the rest.
-        block['tx'] = block['tx'][0]
+        self.logger.debug("Pruning user transactions from block [{}]".format(block['hash']))
+        block['tx'] = [block['tx'][0]]
+        self.logger.debug("Block['tx'] is now filled with the following coinbase transaction: {}".format(block['tx']))
         return block
         
         

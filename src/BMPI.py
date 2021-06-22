@@ -92,7 +92,7 @@ class BMPI():
         
         BMPI = BMPIFunctions(config=self.config, logger=self.logger)
         
-        BMPI.store_most_recent_block_in_es()
+        BMPI.store_last_n_blocks_in_es(5)
     
 
 if __name__ == '__main__':

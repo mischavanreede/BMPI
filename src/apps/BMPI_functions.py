@@ -48,63 +48,50 @@ class BMPIFunctions():
         
         #store record
         
-        self.es_controller.store(record=block, index_name="first_index", doc_type='block')
+        self.es_controller.store(record=block, index_name="first_index")
         self.logger.info("Block [{}] at height [{}] stored succesfully".format(block_hash, block['height']))
         
         #query data record
         self.logger.info("Quering block with hash [{}] from es instance".format(block_hash))
-        result = self.es_controller.query_es(index="first_index", query=block_hash, doc_type='block')
+        result = self.es_controller.query_es(index="first_index", query=block_hash)
         self.logger.info("Got the following result: [{}]".format(result))
         
 
-        print(result)
+        print("done")
         
 
     def store_last_n_blocks_in_es(self, n=1):
-        assert (n>0)
+        assert (n>0) and self.es_controller.isConnected()
+        
+        
         blocks = []
+        i = n
         latest_block_height = self.blockchain_scraper.getLatestBlockHeight()
         latest_blocks = self.blockchain_scraper.getBlocksAtHeight(block_height=latest_block_height)
-        
+        self.logger.debug("Gathering the last {} block(s), starting from height {}".format(n, latest_block_height))
         if len(latest_blocks) != 1:
             # TODO: implement this scenario
-            print("Found multiple blocks at height: {}".format(latest_block_height))
+            print("Found multiple blocks at current height: {}".format(latest_block_height))
+            print("Exiting because this scenario is not coded yet.")
             return
         else:    
             latest_block = latest_blocks[0]
             latest_block = self.blockchain_scraper.pruneUserTransactionsFromBlock(latest_block)
-            latest_block['mining_message'] = self.blockchain_scraper.extractBlockMessage(latest_block)
+            latest_block['mining_pool_message'] = self.blockchain_scraper.extractBlockMessage(latest_block)
             prev_block_hash = self.blockchain_scraper.extractPrevBlockHash(latest_block)
             blocks.append(latest_block)
-            n-=1
+            i-=1
             
-            while n>0:
+            while i>0:
                 prev_block = self.blockchain_scraper.getBlock(prev_block_hash)    
                 prev_block = self.blockchain_scraper.pruneUserTransactionsFromBlock(prev_block)
-                prev_block['mining_message'] = self.blockchain_scraper.extractBlockMessage(prev_block)
+                prev_block['mining_pool_message'] = self.blockchain_scraper.extractBlockMessage(prev_block)
                 prev_block_hash = self.blockchain_scraper.extractPrevBlockHash(prev_block)
                 blocks.append(prev_block)
-                n-=1
+                i-=1
         
         self.logger.info("finished gathering last n={} blocks".format(n))
           # store blocks
-        self.es_controller.bulk_store(records=blocks, index_name='blocks', doc_type='block')
-        
-        
-"""
-
-
-
-make setting for blocks, include mining message, trim unnecessary information
-
-store the last n blocks in es
-
-make bulk insert
-
-
-
-
-
-
-
-"""
+        self.es_controller.bulk_store(records=blocks, index_name='blocks')
+        print("done")
+        return
