@@ -6,10 +6,13 @@ Created on Wed Jun  9 15:09:53 2021
 
 https://www.nylas.com/blog/use-python-requests-module-rest-apis/
 
+TODO: Handle various errors: https://dev.btc.com/docs/js#api-authentication
+
+
 """
 
 import requests   #Documentation: https://pypi.org/project/requests/ ; https://docs.python-requests.org/en/master/user/quickstart/#passing-parameters-in-urls
-
+import time
 
 
 class RestRequests:
@@ -25,7 +28,8 @@ class RestRequests:
         
         self.config = config
         self.logger = logger
-        self.timeout = 3        #Default timeout is set to 3 seconds
+        self.timeout = 10                  # Response timeout
+        self.request_delay = 0.1      # Time delay between GET requests
 
 
     def change_timeout(self, timeout):
@@ -44,6 +48,18 @@ class RestRequests:
         """
         self.logger.debug("Change te timeout to : [{}]".format(timeout))
         self.timeout = timeout
+        
+    def change_request_delay(self, delay):
+        """
+        Changes the timeout value that is passed as parameter in the REST requests.
+
+        Parameters
+        ----------
+        delay : integer
+            Time delay between GET requests
+        """
+        self.logger.debug("Change te timeout to : [{}]".format(delay))
+        self.request_delay = delay
         
         
     def get(self, url, params=None):
@@ -77,6 +93,7 @@ class RestRequests:
 
             if r.status_code == 200:
                 # self.logger.debug("Received response from url : [{}]".format(url))
+                time.sleep(self.request_delay)
                 return r.json()
             else:
                 print("Error: received no response from url : [{}]".format(url))

@@ -2,106 +2,17 @@
 """ 
 A class file used to query data from the https://www.blockchain.com/ API.
 
-Documentation: https://www.blockchain.com/api/blockchain_api
-
-
-
-https://blockchain.info/rawblock/0000000000000bae09a7a393a8acded75aa67e46cb81f7acaa5ad94f9eacd103
-
-
-    
-    
+TODO:  Implement [getCoinbaseTransaction] to only retrieve the first transaction from a block
 
 @author: Mischa van Reede
 
+API Documentation: https://www.blockchain.com/api/blockchain_api
 
-
-Possible API urls:
-    
-    Source: https://www.blockchain.com/api/blockchain_api
-    
+Available API responses:    
     Implemented in this class:
-        
-        Single block:               https://blockchain.info/rawblock/$block_hash
-        Single Transaction:         https://blockchain.info/rawtx/$tx_hash
-
-        Block Height:               https://blockchain.info/block-height/$block_height?format=json
-        Single Address:             https://blockchain.info/rawaddr/$bitcoin_address
-        Latest Block:               https://blockchain.info/latestblock
-
-    
-    Not implemented:
-        Chart Data:                 https://blockchain.info/charts/$chart-type?format=json
-        Multi Address:              https://blockchain.info/multiaddr?active=$address|$address
-        Unspent Outputs:            https://blockchain.info/unspent?active=$address
-        Balance:                    https://blockchain.info/balance?active=$address
-        Unconfirmed Transactions:   https://blockchain.info/unconfirmed-transactions?format=json
-        Blocks: (returns 404's):    - https://blockchain.info/blocks/$time_in_milliseconds?format=json
-                                    - https://blockchain.info/blocks/$pool_name?format=json      
-"""
-
-import json
-import time
-
-
-from .generic_rest_requests import RestRequests
-
-
-class BlockchainScraper(RestRequests):
-        
-    def __init__(self, config, logger):
-        
-        
-        self.base_url = "https://blockchain.info/"
-        self.api_key = None
-        self.timeout = 5 #DefaultTimeout is 10 seconds
-        self.config = config
-        self.logger = logger
-        # Initialize RestRequest object from parent class
-        super().__init__(config=self.config, logger=self.logger)
-                
-# ====================================   
-#  API query methods 
-# ====================================
-
-    def getLatestBlock(self):
-        """
-        Queries the Blockchain.com API to obtain information on the latest mined block.
-        It first queries the latestblock API call to obtain the hash_value of the latest block,
-        after which it calls getBlock(hash_value) to obtain the full block. This is because 
-        the latest block returns a BasicBlock with limited information instead of a full Block structure.
-        
-        TODO check for orphan blocks at the latest block height
-        
-        Returns
-        -------
-        result : <class 'dict'>
-            Dictionary containing information on the latest block mined. 
-            Note that this is not the complete block information, for example, it does not contain  
-            Example:
-                
-        """
-        latest_block_url = self.base_url + "latestblock"
-        latest_basic_block = self.get(latest_block_url)
-        latest_block_hash = latest_basic_block['hash']
-        result = self.getBlock(latest_block_hash)
-        
-        return result
-    
-    def getBlock(self, block_hash): 
-        
-        """
-        Parameters
-        ----------
-        block_hash : TYPE
-            DESCRIPTION.
-
-        Returns
-        -------
-        result : TYPE
-            DESCRIPTION.
-            
-            Example result:
+        Single block:               
+            https://blockchain.info/rawblock/$block_hash
+            Example Block result:
                 {
                   "hash": "0000000000000bae09a7a393a8acded75aa67e46cb81f7acaa5ad94f9eacd103",
                   "ver": 1,
@@ -121,105 +32,19 @@ class BlockchainScraper(RestRequests):
                     "--Array of Transactions--"
                   ]
                 }
-
-        """
-        assert isinstance(block_hash, str)
         
-        single_block_url = self.base_url + "rawblock/" + block_hash
-        result = self.get(single_block_url)
-        return result
-
-    def getTransaction(self, transaction_hash):
-        """
-        
-
-        Parameters
-        ----------
-        transaction_hash : str
-            hash value of a particular transaction on the bitcoin blockchain.
-
-        Returns
-        -------
-        result : TYPE
-            DESCRIPTION.
-            
-            EXAMPLE result:
-                {
-                  "hash": "b6f6991d03df0e2e04dafffcd6bc418aac66049e2cd74b80f14ac86db1e3f0da",
-                  "ver": 1,
-                  "vin_sz": 1,
-                  "vout_sz": 2,
-                  "lock_time": "Unavailable",
-                  "size": 258,
-                  "relayed_by": "64.179.201.80",
-                  "block_height": 12200,
-                  "tx_index": "12563028",
-                  "inputs": [
-                    {
-                      "prev_out": {
-                        "hash": "a3e2bcc9a5f776112497a32b05f4b9e5b2405ed9",
-                        "value": "100000000",
-                        "tx_index": "12554260",
-                        "n": "2"
-                      },
-                      "script": "76a914641ad5051edd97029a003fe9efb29359fcee409d88ac"
-                    }
-                  ],
-                  "out": [
-                    {
-                      "value": "98000000",
-                      "hash": "29d6a3540acfa0a950bef2bfdc75cd51c24390fd",
-                      "script": "76a914641ad5051edd97029a003fe9efb29359fcee409d88ac"
-                    },
-                    {
-                      "value": "2000000",
-                      "hash": "17b5038a413f5c5ee288caa64cfab35a0c01914e",
-                      "script": "76a914641ad5051edd97029a003fe9efb29359fcee409d88ac"
-                    }
-                  ]
-                }
-
-        """
-        assert isinstance(transaction_hash, str)
-        
-        transaction_url = self.base_url + "rawtx/" + transaction_hash
-        result = self.get(transaction_url)
-        return result
-    
-    
-    def getBlocksAtHeight(self, block_height):
-        """
-        Returns a list of Blocks at the specified height.
-        
-        Parameters
-        ----------
-        block_height : int
-            height in the bitcoin blockchain.
-
-        Returns
-        -------
-        result : list            
+        Single Transaction:         
+            https://blockchain.info/rawtx/$tx_hash
+        Block Height:               
+            https://blockchain.info/block-height/$block_height?format=json
             Example result from get request, returns the 'blocks' list:
                 result = {
                   "blocks": [
                     "--Array Of Blocks at the specified height--"
                   ]
                 }
-        """
-        assert isinstance(block_height, int)
-        
-        block_height_url = self.base_url + "block-height/" + str(block_height) + "?format=json"
-        result = self.get(block_height_url)
-        return result['blocks']
-    
-    def getAddressInfo(self, bitcoin_address):
-        """
-        TODO implement limit & offset when there are more than 50 transactions
-
-        Returns
-        -------
-        result : dict            
-            Example result:
+        Single Address:             https://blockchain.info/rawaddr/$bitcoin_address
+            Example Address result:
                 {
                   "hash160": "660d4ef3a743e3e696ad990364e555c271ad504b",
                   "address": "1AJbsFZ64EpEfS5UAjAfcUG8pH8Jn3rn1F",
@@ -232,65 +57,207 @@ class BlockchainScraper(RestRequests):
                     "--Array of Transactions--"
                   ]
                 }
+        Latest Block:               https://blockchain.info/latestblock
+    
+    Not implemented:
+        Chart Data:                 https://blockchain.info/charts/$chart-type?format=json
+        Multi Address:              https://blockchain.info/multiaddr?active=$address|$address
+        Unspent Outputs:            https://blockchain.info/unspent?active=$address
+        Balance:                    https://blockchain.info/balance?active=$address
+        Unconfirmed Transactions:   https://blockchain.info/unconfirmed-transactions?format=json
+        Blocks: (returns 404's):    - https://blockchain.info/blocks/$time_in_milliseconds?format=json
+                                    - https://blockchain.info/blocks/$pool_name?format=json      
+"""
+
+from .generic_rest_requests import RestRequests
+from ..utils import Utils
+
+class BlockchainScraper(RestRequests):
+        
+    def __init__(self, config, logger):
+        self.base_url = "https://blockchain.info/"
+        self.api_key = None
+        self.config = config
+        self.logger = logger
+        # Initialize RestRequest object from parent class
+        super().__init__(config=self.config, logger=self.logger)
+        
+    def __str__(self):
+        return "Blockchain.com API scraper"
+    
+    def __repr__(self):
+        return "Blockchain.com API scraper"
+            
+# ====================================   
+#  API query methods 
+# ====================================
+
+    def getLatestBlock(self):
+        """
+        Queries the Blockchain.com API to obtain information on the latest mined block.
+        It first queries the latestblock API call to obtain the hash_value of the latest block,
+        after which it calls getBlock(hash_value) to obtain the full block. This is because 
+        the latest block returns a BasicBlock with limited information instead of a full Block structure.
+        
+        TODO check for orphan blocks at the latest block height
+        
+        Returns
+        -------
+        result : <class 'dict'>
+            Dictionary containing information on the latest block mined. 
+            Note that this is not the complete block information, it cointains a 'BasicBlock' (see API documentation) object.
+                
+        """
+        latest_block_url = self.base_url + "latestblock"
+        latest_basic_block = self.get(latest_block_url)
+        latest_block_hash = latest_basic_block['hash']
+        result = self.getBlock(latest_block_hash)
+        return result
+    
+    def getLatestBlockHeight(self):
+        return self.getLatestBlock()['height']
+  
+    def getLatestBlockHash(self):
+        return self.getLatestBlock()['hash']
+    
+    def getBlock(self, block_hash): 
+        """
+        Get a block, using a block hash as parameter, from the Blockchain.com API
+        
+        Parameters
+        ----------
+        block_hash : string
+
+        Returns
+        -------
+        result : dict            
+
+        """
+        assert isinstance(block_hash, str) 
+        single_block_url = self.base_url + "rawblock/" + block_hash
+        result = super().get(single_block_url)
+        return result
+
+    def getBlocksAtHeight(self, block_height):
+        """
+        Returns a list of Blocks at the specified height.
+        
+        Parameters
+        ----------
+        block_height : int
+            height in the bitcoin blockchain.
+
+        Returns
+        -------
+        result : list            
+        """
+        assert isinstance(block_height, int)
+        block_height_url = self.base_url + "block-height/" + str(block_height) + "?format=json"
+        result = super().get(block_height_url)
+        return result['blocks']    
+
+    def getTransaction(self, transaction_hash):
+        """
+        Get a transaction object 
+
+        Parameters
+        ----------
+        transaction_hash : str
+            hash value of a particular transaction on the bitcoin blockchain.
+
+        Returns
+        -------
+        result : TYPE
+            DESCRIPTION.
+        """
+        assert isinstance(transaction_hash, str)
+        
+        transaction_url = self.base_url + "rawtx/" + transaction_hash
+        result = super().get(transaction_url)
+        return result
+    
+    def getAddressInfo(self, bitcoin_address):
+        """
+        TODO implement limit & offset when there are more than 50 transactions
+
+        Returns
+        -------
+        result : dict            
+
         """
         assert isinstance(bitcoin_address, str)
     
         single_address_url = self.base_url + "rawaddr/" + bitcoin_address
-        result = self.get(single_address_url)
-        return result
-          
+        result = super().get(single_address_url)
+        return result        
     
 # ====================================   
 #  Data handler methods 
 # ====================================     
         
 
-    def getLatestBlockHeight(self):
-        return self.getLatestBlock()['height']
-  
-    def getLatestBlockHash(self):
-        return self.getLatestBlock()['hash']
-  
-    
-    def hexStringToAscii(self, hex_string):
-        return bytes.fromhex(hex_string).decode('ascii', 'ignore')
-        
-    
-    def extractPrevBlockHash(self, block):
+    def __extractCoinbaseTransaction(self, block):
+        return block['tx'][0]
+             
+    def __extractPrevBlockHash(self, block):
         """
-        Extracts the hash of the preceding block from any given block.
+        Extracts the hash of the preceding block from a block specified by
+        its block hash.
         """
-        prev_hash = block['prev_block']
-        return prev_hash
+        return block['prev_block']
     
-    def extractBlockMessage(self, block):
+    def __extractBlockHeight(self, block):
+        return block['height']
+    
+    def __extractBlockTimestamp(self, block):
+        return block['time']
+    
+    
+    def __getCoinbaseScriptMessage(self, block):
         """
-        Extracts the miners' message from a block and transforms it from a hex 
-        string to an Ascii string.
+        Extracts the miners' message from a block and return the hex value 
         Mining data in block dict ->   tx/0/inputs/0/script: 
+        """
+        return Utils.hexStringToAscii(block['tx'][0]['inputs'][0]['script'])
+   
+    
+    def getBlockInformation(self, block_hash):
+        """
+        Extract various bits of information from a specified block and 
+        returns a dictionary.
+
+        Parameters
+        ----------
+        block_hash : string
 
         Returns
         -------
-        message : str
-        """
-        hex_string = block['tx'][0]['inputs'][0]['script']
-        return self.hexStringToAscii(hex_string)
+        block_information : dict.
 
-    def pruneUserTransactionsFromBlock(self, block):
         """
-        Removes all transactions from a block exept the coinbase transaction. 
+        self.logger.debug("Querying Blockchain.com API to obtain information about block: {}".format(block_hash))
+        block = self.getBlock(block_hash)
+        block_height = self.__extractBlockHeight(block)
+        coinbase_tx = self.__extractCoinbaseTransaction(block)
+        coinbase_message = Utils.removeNonAscii(self.__getCoinbaseScriptMessage(block))
+        payout_address = coinbase_tx['out'][0]['addr']
 
-        Returns
-        -------
-        block : dict
-            Returns a block with all user transactions removed
-        """
-        # Keep first transaction (= coinbase transaction), remove the rest.
-        self.logger.debug("Pruning user transactions from block [{}]".format(block['hash']))
-        block['tx'] = [block['tx'][0]]
-        self.logger.debug("Block['tx'] is now filled with the following coinbase transaction: {}".format(block['tx']))
-        return block
-        
+        block_information = {
+            "block_hash": block_hash,
+            "prev_block_hash": self.__extractPrevBlockHash(block),
+            "block_height": self.__extractBlockHeight(block),
+            "timestamp" : self.__extractBlockTimestamp(block),
+            "coinbase_tx_hash": coinbase_tx['hash'],
+            "coinbase_message": coinbase_message,
+            "pool_name": None,
+            "pool_address": payout_address,
+            "fee_block_reward": block['fee'], 
+            "total_block_reward": coinbase_tx['out'][0]['value']
+            }
+        self.logger.debug("Information succesfully obtained from the Blockchain.info API for block at height {} with hash: {}".format(block_height, block_hash))
+        return block_information
+
+
         
 
     

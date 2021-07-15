@@ -1,0 +1,890 @@
+{
+    "_comment": "This data is based on https://github.com/blockchain/Blockchain-Known-Pools and appended to by running scraper_controller.py",
+    "mining_pools": {
+        "175btc": {
+            "coinbase_tags": [
+                "Mined By 175btc.com"
+            ],
+            "link": "https://www.175btc.com",
+            "pool_addresses": []
+        },
+        "1Hash": {
+            "coinbase_tags": [
+                "Mined by 1hash.com"
+            ],
+            "link": "http://www.1hash.com",
+            "pool_addresses": [
+                "1F1xcRt8H8Wa623KqmkEontwAAVqDSAWCV"
+            ]
+        },
+        "1THash&58COIN": {
+            "coinbase_tags": [
+                "/1THash&58COIN/"
+            ],
+            "link": "https://www.1thash.top",
+            "pool_addresses": []
+        },
+        "21 Inc.": {
+            "coinbase_tags": [
+                "/pool34/"
+            ],
+            "link": "https://21.co",
+            "pool_addresses": [
+                "15rQXUSBQRubShPpiJfDLxmwS8ze2RUm4z",
+                "1CdJi2xRTXJF6CEJqNHYyQDNEcM3X7fUhD",
+                "1GC6HxDvnchDdb5cGkFXsJMZBFRsKAXfwi"
+            ]
+        },
+        "50BTC": {
+            "coinbase_tags": [
+                "50BTC"
+            ],
+            "link": "https://www.50btc.com",
+            "pool_addresses": []
+        },
+        "58COIN": {
+            "coinbase_tags": [
+                "/58coin.com/"
+            ],
+            "link": "https://www.58coin.com",
+            "pool_addresses": [
+                "199EDJoCpqV672qESEkfFgEqNT1iR2gj3t"
+            ]
+        },
+        "7pool": {
+            "coinbase_tags": [
+                "/$Mined by 7pool.com/"
+            ],
+            "link": "https://7pool.com/",
+            "pool_addresses": [
+                "1JLc3JxvpdL1g5zoX8sKLP4BkJQiwnJftU"
+            ]
+        },
+        "8baochi": {
+            "coinbase_tags": [
+                "/\u516b\u5b9d\u6c60 8baochi.com/",
+                "/8baochi.com/"
+            ],
+            "link": "http://8baochi.com",
+            "pool_addresses": [
+                "1Hk9gD8xMo2XBUhE73y5zXEM8xqgffTB5f"
+            ]
+        },
+        "A-XBT": {
+            "coinbase_tags": [
+                "/A-XBT/"
+            ],
+            "link": "http://www.a-xbt.com",
+            "pool_addresses": [
+                "1MFsp2txCPwMMBJjNNeKaduGGs8Wi1Ce7X"
+            ]
+        },
+        "ASICMiner": {
+            "coinbase_tags": [
+                "ASICMiner"
+            ],
+            "link": "http://www.asicminer.co",
+            "pool_addresses": []
+        },
+        "AntPool": {
+            "coinbase_tags": [
+                "Mined by AntPool",
+                "/AntPool/",
+                "Mined By AntPool"
+            ],
+            "link": "https://www.antpool.com/",
+            "pool_addresses": [
+                "12dRugNcdxK39288NjcDV4GX7rMsKCGn6B"
+            ]
+        },
+        "BATPOOL": {
+            "coinbase_tags": [
+                "/BATPOOL/"
+            ],
+            "link": "https://www.batpool.com",
+            "pool_addresses": [
+                "167ApWWxUSFQmz2jdz9xop3oAKdLejvMML"
+            ]
+        },
+        "BCMonster": {
+            "coinbase_tags": [
+                "/BCMonster/"
+            ],
+            "link": "http://www.bcmonster.com",
+            "pool_addresses": [
+                "1E18BNyobcoiejcDYAz5SjbrzifNDEpM88"
+            ]
+        },
+        "Binance": {
+            "coinbase_tags": [
+                "binance"
+            ],
+            "link": "https://pool.binance.com/en",
+            "pool_addresses": [
+                "bc1qx9t2l3pyny2spqpqlye8svce70nppwtaxwdrp4"
+            ]
+        },
+        "BTC Guild": {
+            "coinbase_tags": [
+                "BTC Guild"
+            ],
+            "link": "http://www.btcguild.com",
+            "pool_addresses": []
+        },
+        "BTC.TOP": {
+            "coinbase_tags": [
+                "/BTC.TOP/",
+                "/BTC.top/"
+            ],
+            "link": "http://btc.top",
+            "pool_addresses": [
+                "1Hz96kJKF2HLPGY15JWLB5m9qGNxvt8tHJ"
+            ]
+        },
+        "BTC.com": {
+            "coinbase_tags": [
+                "/BTC.COM/",
+                "/BTC.com/"
+            ],
+            "link": "https://pool.btc.com",
+            "pool_addresses": [
+                "3NA8hsjfdgVkmmVS9moHmkZsVCoLxUkvvv",
+                "1Bf9sZvBHPFGVPX71WX2njhd1NXKv5y7v5"
+            ]
+        },
+        "BTCC Pool": {
+            "coinbase_tags": [
+                "BTCChina Pool",
+                "btcchina.com",
+                "BTCChina.com",
+                "/BTCC/"
+            ],
+            "link": "https://pool.btcc.com",
+            "pool_addresses": [
+                "152f1muMCNa7goXYhYAQC61hxEgGacmncB"
+            ]
+        },
+        "BTCServ": {
+            "coinbase_tags": [
+                "btcserv"
+            ],
+            "link": "http://btcserv.net",
+            "pool_addresses": []
+        },
+        "BTPOOL": {
+            "coinbase_tags": [
+                "/BTPOOL/"
+            ],
+            "link": "",
+            "pool_addresses": []
+        },
+        "BW.COM": {
+            "coinbase_tags": [
+                "BW Pool"
+            ],
+            "link": "https://bw.com",
+            "pool_addresses": [
+                "1JLRXD8rjRgQtTS9MvfQALfHgGWau9L9ky"
+            ]
+        },
+        "BWPool": {
+            "coinbase_tags": [
+                "BWPool"
+            ],
+            "link": "https://bwpool.net/",
+            "pool_addresses": []
+        },
+        "BitClub Network": {
+            "coinbase_tags": [
+                "/BitClub Network/"
+            ],
+            "link": "https://bitclubpool.com",
+            "pool_addresses": [
+                "155fzsEBHy9Ri2bMQ8uuuR3tv1YzcDywd4"
+            ]
+        },
+        "BitFury": {
+            "coinbase_tags": [
+                "/BitFury/",
+                "/Bitfury/"
+            ],
+            "link": "http://bitfury.com",
+            "pool_addresses": [
+                "1AcAj9p6zJn4xLXdvmdiuPCtY7YkBPTAJo",
+                "14yfxkcpHnju97pecpM7fjuTkVdtbkcfE6"
+            ]
+        },
+        "BitMinter": {
+            "coinbase_tags": [
+                "BitMinter"
+            ],
+            "link": "https://bitminter.com",
+            "pool_addresses": [
+                "19PkHafEN18mquJ9ChwZt5YEFoCdPP5vYB"
+            ]
+        },
+        "Bitalo": {
+            "coinbase_tags": [
+                "Bitalo"
+            ],
+            "link": "https://bitalo.com/mining",
+            "pool_addresses": [
+                "1HTejfsPZQGi3afCMEZTn2xdmoNzp13n3F"
+            ]
+        },
+        "Bitcoin Affiliate Network": {
+            "coinbase_tags": [
+                "bitcoinaffiliatenetwork.com"
+            ],
+            "link": "https://mining.bitcoinaffiliatenetwork.com",
+            "pool_addresses": []
+        },
+        "Bitcoin India": {
+            "coinbase_tags": [
+                "/Bitcoin-India/"
+            ],
+            "link": "https://bitcoin-india.org",
+            "pool_addresses": [
+                "1AZ6BkCo4zgTuuLpRStJH8iNsehXTMp456"
+            ]
+        },
+        "Bitcoin-Ukraine": {
+            "coinbase_tags": [
+                "/Bitcoin-Ukraine.com.ua/"
+            ],
+            "link": "https://bitcoin-ukraine.com.ua/",
+            "pool_addresses": []
+        },
+        "Bitcoin.com": {
+            "coinbase_tags": [
+                "pool.bitcoin.com"
+            ],
+            "link": "https://www.bitcoin.com",
+            "pool_addresses": []
+        },
+        "BitcoinRussia": {
+            "coinbase_tags": [
+                "/Bitcoin-Russia.ru/"
+            ],
+            "link": "https://bitcoin-russia.ru",
+            "pool_addresses": [
+                "14R2r9FkyDmyxGB9xUVwVLdgsX9YfdVamk"
+            ]
+        },
+        "Bitdeer": {
+            "coinbase_tags": [
+                "Bitdeer"
+            ],
+            "link": "https://www.bitdeer.com/",
+            "pool_addresses": []
+        },
+        "Bitfarms": {
+            "coinbase_tags": [
+                "BITFARMS"
+            ],
+            "link": "https://www.bitarms.io/",
+            "pool_addresses": []
+        },
+        "Bitparking": {
+            "coinbase_tags": [
+                "bitparking"
+            ],
+            "link": "http://mmpool.bitparking.com",
+            "pool_addresses": []
+        },
+        "Bitsolo": {
+            "coinbase_tags": [
+                "Bitsolo Pool"
+            ],
+            "link": "http://bitsolo.net",
+            "pool_addresses": [
+                "18zRehBcA2YkYvsC7dfQiFJNyjmWvXsvon"
+            ]
+        },
+        "Bixin": {
+            "coinbase_tags": [
+                "/HaoBTC/",
+                "/Bixin/"
+            ],
+            "link": "https://haopool.com/",
+            "pool_addresses": [
+                "1KsFhYKLs8qb1GHqrPxHoywNQpet2CtP9t",
+                "13hQVEstgo4iPQZv9C7VELnLWF7UWtF4Q3"
+            ]
+        },
+        "Bravo Mining": {
+            "coinbase_tags": [
+                "/bravo-mining/"
+            ],
+            "link": "http://www.bravo-mining.com",
+            "pool_addresses": []
+        },
+        "BytePool": {
+            "coinbase_tags": [
+                "/bytepool.com/"
+            ],
+            "link": "https://www.bytepool.com/",
+            "pool_addresses": []
+        },
+        "CANOE": {
+            "coinbase_tags": [
+                "/CANOE/"
+            ],
+            "link": "https://www.canoepool.com",
+            "pool_addresses": [
+                "1Afcpc2FpPnREU6i52K3cicmHdvYRAH9Wo"
+            ]
+        },
+        "CKPool": {
+            "coinbase_tags": [
+                "/ckpool.org/"
+            ],
+            "link": "http://ckpool.org",
+            "pool_addresses": []
+        },
+        "CanoePool": {
+            "coinbase_tags": [
+                "/canoepool/"
+            ],
+            "link": "https://www.canoepool.com/",
+            "pool_addresses": []
+        },
+        "CoinLab": {
+            "coinbase_tags": [
+                "CoinLab"
+            ],
+            "link": "https://coinlab.com",
+            "pool_addresses": []
+        },
+        "Cointerra": {
+            "coinbase_tags": [
+                "cointerra"
+            ],
+            "link": "http://cointerra.com",
+            "pool_addresses": [
+                "1BX5YoLwvqzvVwSrdD4dC32vbouHQn2tuF"
+            ]
+        },
+        "ConnectBTC": {
+            "coinbase_tags": [
+                "/ConnectBTC - Home for Miners/"
+            ],
+            "link": "https://www.connectbtc.com",
+            "pool_addresses": [
+                "1KPQkehgYAqwiC6UCcbojM3mbGjURrQJF2"
+            ]
+        },
+        "DCEX": {
+            "coinbase_tags": [
+                "/DCEX/"
+            ],
+            "link": "http://dcexploration.cn",
+            "pool_addresses": []
+        },
+        "DCExploration": {
+            "coinbase_tags": [
+                "/DCExploration/"
+            ],
+            "link": "",
+            "pool_addresses": []
+        },
+        "DPOOL": {
+            "coinbase_tags": [
+                "/DPOOL.TOP/"
+            ],
+            "link": "https://www.dpool.top/",
+            "pool_addresses": [
+                "1ACAgPuFFidYzPMXbiKptSrwT74Dg8hq2v"
+            ]
+        },
+        "EMCD Pool": {
+            "coinbase_tags": [
+                "one_more_mcd"
+            ],
+            "link": "https://pool.emcd.io",
+            "pool_addresses": [
+                "1BDbsWi3Mrcjp1wdop3PWFNCNZtu4R7Hjy"
+            ]
+        },
+        "EclipseMC": {
+            "coinbase_tags": [
+                "EMC"
+            ],
+            "link": "https://eclipsemc.com",
+            "pool_addresses": [
+                "15xiShqUqerfjFdyfgBH1K7Gwp6cbYmsTW "
+            ]
+        },
+        "Eligius": {
+            "coinbase_tags": [
+                "Eligius"
+            ],
+            "link": "http://eligius.st",
+            "pool_addresses": []
+        },
+        "F2Pool": {
+            "coinbase_tags": [
+                "\u4e03\u5f69\u795e\u4ed9\u9c7c",
+                "\ud83d\udc1f",
+                "/F2Pool/"
+            ],
+            "link": "https://www.f2pool.com/",
+            "pool_addresses": [
+                "1KFHE7w8BhaENAswwryaoccDb6qcT6DbYY"
+            ]
+        },
+        "GBMiners": {
+            "coinbase_tags": [
+                "/mined by gbminers/"
+            ],
+            "link": "https://gbminers.com",
+            "pool_addresses": []
+        },
+        "GHash.IO": {
+            "coinbase_tags": [
+                "ghash.io"
+            ],
+            "link": "https://ghash.io",
+            "pool_addresses": [
+                "1CjPR7Z5ZSyWk6WtXvSFgkptmpoi4UM9BC"
+            ]
+        },
+        "Give Me Coins": {
+            "coinbase_tags": [
+                "Give-Me-Coins"
+            ],
+            "link": "http://give-me-coins.com",
+            "pool_addresses": []
+        },
+        "HAOZHUZHU": {
+            "coinbase_tags": [
+                "/haozhuzhu/"
+            ],
+            "link": "http://haozhuzhu.com/",
+            "pool_addresses": [
+                "19qa95rTbDziNCS9EexUbh2hVY4viUU9tt"
+            ]
+        },
+        "HASHPOOL": {
+            "coinbase_tags": [
+                "HASHPOOL"
+            ],
+            "link": "http://hashpool.com",
+            "pool_addresses": []
+        },
+        "HHTT": {
+            "coinbase_tags": [
+                "HHTT"
+            ],
+            "link": "http://hhtt.1209k.com",
+            "pool_addresses": []
+        },
+        "Haominer": {
+            "coinbase_tags": [
+                "/haominer/"
+            ],
+            "link": "http://haominer.com/",
+            "pool_addresses": []
+        },
+        "HashBX": {
+            "coinbase_tags": [
+                "/Mined by HashBX.io/"
+            ],
+            "link": "https://hashbx.io",
+            "pool_addresses": []
+        },
+        "Helix": {
+            "coinbase_tags": [
+                "/Helix/"
+            ],
+            "link": "",
+            "pool_addresses": []
+        },
+        "HotPool": {
+            "coinbase_tags": [
+                "/HotPool/"
+            ],
+            "link": "https://hotpool.co",
+            "pool_addresses": [
+                "17judvK4AC2M6KhaBbAEGw8CTKc9Pg8wup"
+            ]
+        },
+        "Hummerpool": {
+            "coinbase_tags": [
+                "Hummerpool",
+                "HummerPool"
+            ],
+            "link": "https://www.hummerpool.com",
+            "pool_addresses": []
+        },
+        "Huobi.pool": {
+            "coinbase_tags": [
+                "/Huobi/",
+                "/HuoBi/"
+            ],
+            "link": "https://www.poolhb.com/",
+            "pool_addresses": []
+        },
+        "KanoPool": {
+            "coinbase_tags": [
+                "Kano"
+            ],
+            "link": "https://kano.is",
+            "pool_addresses": []
+        },
+        "KnCMiner": {
+            "coinbase_tags": [
+                "KnCMiner"
+            ],
+            "link": "https://portal.kncminer.com/pool",
+            "pool_addresses": []
+        },
+        "Luxor": {
+            "coinbase_tags": [
+                "/LUXOR/"
+            ],
+            "link": "https://mining.luxor.tech",
+            "pool_addresses": []
+        },
+        "MaxBTC": {
+            "coinbase_tags": [
+                "MaxBTC"
+            ],
+            "link": "http://maxbtc.com",
+            "pool_addresses": []
+        },
+        "MegaBigPower": {
+            "coinbase_tags": [
+                "megabigpower.com"
+            ],
+            "link": "http://megabigpower.com",
+            "pool_addresses": [
+                "1K7znxRfkS8R1hcmyMvHDum1hAQreS4VQ4"
+            ]
+        },
+        "MiningCity": {
+            "coinbase_tags": [
+                "MiningCity"
+            ],
+            "link": "https://www.miningcity.com/",
+            "pool_addresses": [
+                "11wC5KcbgrWRBb43cwADdVrxgyF8mndVC"
+            ]
+        },
+        "MiningKings": {
+            "coinbase_tags": [
+                "/mined by poopbut/"
+            ],
+            "link": "https://miningkings.com/",
+            "pool_addresses": [
+                "1EowSPumj9D9AMTpE64Jr7vT3PJDNopVcz",
+                "1ApE99VM5RJzMRRtwd2JMgmkGabtJqoMEz",
+                "1KGbsDDAgJN2HDNBjmMHp9828qATo5B9c9"
+            ]
+        },
+        "Mt Red": {
+            "coinbase_tags": [
+                "/mtred/"
+            ],
+            "link": "https://mtred.com",
+            "pool_addresses": []
+        },
+        "MultiCoin.co": {
+            "coinbase_tags": [
+                "Mined by MultiCoin.co"
+            ],
+            "link": "http://multicoin.co",
+            "pool_addresses": []
+        },
+        "NMCbit": {
+            "coinbase_tags": [
+                "nmcbit.com"
+            ],
+            "link": "http://nmcbit.com",
+            "pool_addresses": []
+        },
+        "Nexious": {
+            "coinbase_tags": [
+                "/Nexious/"
+            ],
+            "link": "https://nexious.com",
+            "pool_addresses": [
+                "1GBo1f2tzVx5jScV9kJXPUP9RjvYXuNzV7"
+            ]
+        },
+        "NiceHash Solo": {
+            "coinbase_tags": [
+                "/NiceHashSolo"
+            ],
+            "link": "https://solo.nicehash.com",
+            "pool_addresses": []
+        },
+        "NovaBlock": {
+            "coinbase_tags": [
+                "/NovaBlock/"
+            ],
+            "link": "https://novablock.com",
+            "pool_addresses": []
+        },
+        "OKExPool": {
+            "coinbase_tags": [
+                "/www.okex.com/"
+            ],
+            "link": "https://www.okex.com/",
+            "pool_addresses": []
+        },
+        "OzCoin": {
+            "coinbase_tags": [
+                "ozco.in",
+                "ozcoin"
+            ],
+            "link": "http://ozcoin.net",
+            "pool_addresses": []
+        },
+        "PHash.IO": {
+            "coinbase_tags": [
+                "/phash.io/",
+                "/phash.cn/"
+            ],
+            "link": "http://phash.io",
+            "pool_addresses": []
+        },
+        "Polmine": {
+            "coinbase_tags": [
+                "by polmine.pl",
+                "bypmneU"
+            ],
+            "link": "https://polmine.pl",
+            "pool_addresses": [
+                "17kkmDx8eSwj2JTTULb3HkJhCmexfysExz",
+                "1AajKXkaq2DsnDmP8ZPTrE5gH1HFo1x3AU",
+                "16cv7wyeG6RRqhvJpY21CnsjxuKj2gAoK2",
+                "13vWXwzNF5Ef9SUXNTdr7de7MqiV4G1gnL",
+                "1Nsvmnv8VcTMD643xMYAo35Aco3XA5YPpe",
+                "1JrYhdhP2jCY6JwuVzdk9jUwc4pctcSes7"
+            ]
+        },
+        "Poolin": {
+            "coinbase_tags": [
+                "/poolin.com/",
+                "/poolin.com",
+                "poolin.com"
+            ],
+            "link": "https://www.poolin.com/",
+            "pool_addresses": [
+                "36n452uGq1x4mK7bfyZR8wgE47AnBb2pzi",
+                "3DXfeMBimuvN3TWnQXDhr47P8M8yxMy9Pd",
+                "36aC6xMXYaRdL1nobKfqYVCjKhZVXWN8RX",
+                "15kNvZYY9HWg4wE7Fd73o96P5eKb96Yyfa",
+                "3KWcQ4Xe5Dc3R1UMWatf1knJY6Zu61MZKV",
+                "35qGBQsRQb8CSUzcSWktMykeA6zm5iCEJJ",
+                "3JAvzKWgtxPzcbTqKeAT7qfwoZBjtVmkBU",
+                "347a2vGV9r4RyrKoBiVnCLnBN4rDYDWUyy",
+                "3EFdpy14AqDsbQy3XGYyoGDrLYrbB8XWSs",
+                "1382v6T81xCPFeLaQq6UTuq7HFySq27LcX",
+                "1D1ULAXyEX2zrLSMX9xMFVQKzEGqPfkJVS",
+                "1M1Xw2rczxkF3p3wiNHaTmxvbpZZ7M6vaa",
+                "3KJrsjfg1dD6CrsTeHdHVH3KqMpvL2XWQn",
+                "17HzvxMhoke5K3oavLzPGkLy4zd35KjWEb",
+                "1PQwtwajfHWyAkedss5utwBvULqbGocRpu"
+            ]
+        },
+        "PureBTC.COM": {
+            "coinbase_tags": [
+                "/PureBTC.COM/"
+            ],
+            "link": "https://purebtc.com",
+            "pool_addresses": []
+        },
+        "Rawpool.com": {
+            "coinbase_tags": [
+                "Rawpool.com",
+                "/Rawpool.com/"
+            ],
+            "link": "https://www.rawpool.com/",
+            "pool_addresses": []
+        },
+        "RigPool": {
+            "coinbase_tags": [
+                "/RigPool.com/"
+            ],
+            "link": "https://www.rigpool.com",
+            "pool_addresses": [
+                "1JpKmtspBJQVXK67DJP64eBJcAPhDvJ9Er"
+            ]
+        },
+        "SBI Crypto": {
+            "coinbase_tags": [
+                "SBI Crypto",
+                "SBICrypto"
+            ],
+            "link": "https://www.sbicrypto.com",
+            "pool_addresses": []
+        },
+        "ST Mining Corp": {
+            "coinbase_tags": [
+                "st mining corp"
+            ],
+            "link": "https://bitcointalk.org/index.php?topic=77000.msg3207708#msg3207708",
+            "pool_addresses": []
+        },
+        "SecretSuperstar": {
+            "coinbase_tags": [
+                "/SecretSuperstar/"
+            ],
+            "link": "",
+            "pool_addresses": []
+        },
+        "SigmaPool.com": {
+            "coinbase_tags": [
+                "SigmaPool.com"
+            ],
+            "link": "https://www.sigmapool.com/",
+            "pool_addresses": []
+        },
+        "SlushPool": {
+            "coinbase_tags": [
+                "/slush/"
+            ],
+            "link": "https://slushpool.com",
+            "pool_addresses": [
+                "1CK6KHY6MHgYvmRQ4PAafKYDrg1ejbH1cE",
+                "1AqTMY7kmHZxBuLUR5wJjPFUvqGs23sesr"
+            ]
+        },
+        "Solo CKPool": {
+            "coinbase_tags": [
+                "/solo.ckpool.org/"
+            ],
+            "link": "http://solo.ckpool.org",
+            "pool_addresses": []
+        },
+        "TBDice": {
+            "coinbase_tags": [
+                "TBDice"
+            ],
+            "link": "http://tbdice.org",
+            "pool_addresses": [
+                "1BUiW44WuJ2jiJgXiyxJVFMN8bc1GLdXRk"
+            ]
+        },
+        "TripleMining": {
+            "coinbase_tags": [
+                "triplemining",
+                "Triplemining.com"
+            ],
+            "link": "https://www.triplemining.com",
+            "pool_addresses": []
+        },
+        "ViaBTC": {
+            "coinbase_tags": [
+                "viabtc.com deploy",
+                "/ViaBTC/"
+            ],
+            "link": "https://viabtc.com",
+            "pool_addresses": [
+                "18cBEMRxXHqzWWCxZNtU91F5sbUNKhL5PX"
+            ]
+        },
+        "WAYI.CN": {
+            "coinbase_tags": [
+                "/E2M & BTC.TOP/"
+            ],
+            "link": "http://www.easy2mine.com/",
+            "pool_addresses": []
+        },
+        "Waterhole": {
+            "coinbase_tags": [
+                "/WATERHOLE.IO/"
+            ],
+            "link": "https://btc.waterhole.io/",
+            "pool_addresses": [
+                "1FLH1SoLv4U68yUERhDiWzrJn5TggMqkaZ"
+            ]
+        },
+        "Yourbtc.net": {
+            "coinbase_tags": [
+                "yourbtc.net"
+            ],
+            "link": "http://yourbtc.net",
+            "pool_addresses": []
+        },
+        "bcpool.io": {
+            "coinbase_tags": [
+                "bcpool.io"
+            ],
+            "link": "https://bcpool.io",
+            "pool_addresses": []
+        },
+        "digitalBTC": {
+            "coinbase_tags": [
+                "/agentD/"
+            ],
+            "link": "http://digitalbtc.com",
+            "pool_addresses": [
+                "1MimPd6LrPKGftPRHWdfk8S3KYBfN4ELnD"
+            ]
+        },
+        "mmpool": {
+            "coinbase_tags": [
+                "mmpool"
+            ],
+            "link": "http://mmpool.org/pool",
+            "pool_addresses": []
+        },
+        "myBTCcoin Pool": {
+            "coinbase_tags": [
+                "myBTCcoin Pool"
+            ],
+            "link": "http://mybtccoin.com",
+            "pool_addresses": [
+                "151T7r1MhizzJV6dskzzUkUdr7V8JxV2Dx"
+            ]
+        },
+        "okpool.top": {
+            "coinbase_tags": [
+                "/www.okpool.top/"
+            ],
+            "link": "https://www.okpool.top",
+            "pool_addresses": []
+        },
+        "shawnp0wers": {
+            "coinbase_tags": [
+                "--Nug--"
+            ],
+            "link": "https://www.brainofshawn.com",
+            "pool_addresses": [
+                "12znnESiJ3bgCLftwwrg9wzQKN8fJtoBDa",
+                "18HEMWFXM9UGPVZHUMdBPD3CMFWYn2NPRX"
+            ]
+        },
+        "sigmapool.com": {
+            "coinbase_tags": [
+                "/SigmaPool.com/"
+            ],
+            "link": "https://sigmapool.com",
+            "pool_addresses": []
+        },
+        "simplecoin.us": {
+            "coinbase_tags": [
+                "simplecoin"
+            ],
+            "link": "http://simplecoin.us",
+            "pool_addresses": []
+        },
+        "tigerpool.net": {
+            "coinbase_tags": [
+                "/tigerpool.net"
+            ],
+            "link": "",
+            "pool_addresses": []
+        },
+        "xbtc.exx.com&bw.com": {
+            "coinbase_tags": [
+                "xbtc.exx.com&bw.com"
+            ],
+            "link": "https://xbtc.exx.com",
+            "pool_addresses": []
+        }
+    }
+}

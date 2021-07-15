@@ -37,9 +37,6 @@ class ElasticsearchController():
         self.logger = logger
         self.es_connection = self.__connect_elasticsearch()
         
-
-        self.__delete_index('first_index')
-
         self.__delete_index('blocks')
         
         self.__create_all_indices()
@@ -147,7 +144,7 @@ class ElasticsearchController():
             except Exception as e:
                 self.logger.error("An error has occurred: {}".format(e))
         else:
-            self.logger.info("The index [{}] does not exist".format(index_name))
+            self.logger.debug("The index [{}] does not exist".format(index_name))
             return
     
     #============================================
@@ -224,7 +221,7 @@ class ElasticsearchController():
         max_tries = 5
         while True:
             try:
-                self.logger.debug("Storing [{}[ ]records in index: [{}]".format(len(records), index_name))
+                self.logger.info("Storing [{}]records in index: [{}]".format(len(records), index_name))
                 elasticsearch.helpers.bulk(self.es_connection, actions=action)
                 is_stored = True
                 self.logger.debug("Storing records was succesful")
@@ -273,7 +270,7 @@ class ElasticsearchController():
 
 class ElasticsearchIndexes():
     
-    INDEX_NAMES = ["first_index", "blocks"]
+    INDEX_NAMES = ["blocks"]
     
     SETTINGS = {
             "settings" : {
@@ -283,11 +280,8 @@ class ElasticsearchIndexes():
         }
     
     #https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-params.html
+
     MAPPINGS = {
-        "first_index": {
-                "mappings": {
-                }
-            },
         "blocks": {
                 "mappings": {
                     "properties": {

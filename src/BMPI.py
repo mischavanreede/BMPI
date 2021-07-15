@@ -3,37 +3,54 @@
 Bitcoin Mining Payout Inspector
 
 @author: Mischa van Reede
+
+x Disconnected two scrapers
+x get mining pool btc address from both scrapers 
+x update pool_data.json (Add f2pool message to pool_data.json, etc.)
+x add binance pool
+x check for message match, check for btc address match
+x add btc address if missing
+- save block data for manual inspection if btc address match, but no message match; So that this message can be added manually.
+- Think about settings for blocks index (with variables such as; height, hash, prev hash, pool_name, mining pool btc address)
+- Think about settings for mining pool index (name, number of blocks, latest mined block, receiving btc address, sub-mining addresses, share of rewards per mining address) 
+- (make abstract scraper class: https://www.youtube.com/watch?v=PDMe3wgAsWg)
+
+x fix logging errors when trying to log the fish symbol and other non ascii symbols.
+x update pool_data.json to allow for multiple coinbase tags for the same mining pool (e.g. 'Mined by AntPool' and 'Mined By AntPool' and '/AntPool/') 
+
+
+- TODO check if coinbase transaction has multiple output addresses
+- TODO implement try-catch blocks to catch timeout errors
+
+- make a 'mismatch index' in es which keeps track of mismatches in block information from the two API's'
+
 """
 
 
 # package imports
-import logging 
+import logging
 from configparser import ConfigParser
-
 
 # project imports
 from apps.BMPI_functions import BMPIFunctions
 
-
-
 class BMPI():
-       
     def __init__(self):
-        
         self.config = self.initialize_config()
         self.logger = self.initialize_logger()
-            
-    
-    def initialize_config(self):
+
+    @staticmethod
+    def initialize_config():
         config = ConfigParser()
         config.read("config/settings.conf")
         return config
-    
+
     def initialize_logger(self): #For logging, look at: https://docs.python.org/3/howto/logging.html  and  https://docs.python.org/3/howto/logging.html#logging-advanced-tutorial
         """
-        A method that initializes logging # https://docs.python.org/3/howto/logging-cookbook.html#logging-to-multiple-destinations
+        A method that initializes logging
+        # https://docs.python.org/3/howto/logging-cookbook.html#logging-to-multiple-destinations
         https://www.youtube.com/watch?v=jxmzY9soFXg
-        
+
         Levels:
             DEBUG:      Detailed information, typically of interest only when diagnosing problems.
             INFO:       Confirmation that things are working as expected.
@@ -41,10 +58,12 @@ class BMPI():
             ERROR:  	Due to a more serious problem, the software has not been able to perform some function.
             CRITICAL:  	A serious error, indicating that the program itself may be unable to continue running.
             EXCEPTION:  Includes a traceback to mot recent method call
-        
-        Todo:
-            add date to log file to prevent them growing too big
-            perhaps implement log file 'rotation' 
+
+        TODO:   - Add date to log file to prevent them growing too big
+                - Perhaps implement log file 'rotation'
+                - Put and obtain settings from loggin.conf
+                https://stackoverflow.com/questions/15727420/using-logging-in-multiple-modules
+            
         
         """
         
@@ -69,13 +88,13 @@ class BMPI():
         
         # Create file handler, Obtains log file location from config (settings.conf)
         file_path = self.config.get('Logging', 'LOG_FILE_PATH')
-        file_handler = logging.FileHandler(file_path)
+        file_handler = logging.FileHandler(filename=file_path, mode='a',encoding='utf-8')
         file_handler.filemode = 'w'
         file_handler.setFormatter(formatter)
         
-        # Create stream handler
+        # Create stream handler for console output
         stream_handler = logging.StreamHandler()
-        stream_handler.setLevel(logging.ERROR)
+        stream_handler.setLevel(logging.INFO)
         stream_handler.setFormatter(formatter)
         
         # Add handlers to logger
@@ -83,7 +102,7 @@ class BMPI():
         bmpi_logger.addHandler(stream_handler)
         
         # Stop logs from propagating to the root logger
-        #base_logger.propagate = False
+        #bmpi_logger.propagate = False
         
         return bmpi_logger
 
@@ -92,7 +111,8 @@ class BMPI():
         
         BMPI = BMPIFunctions(config=self.config, logger=self.logger)
         
-        BMPI.store_last_n_blocks_in_es(5)
+        BMPI.runScrapers()
+        #BMPI.run()
     
 
 if __name__ == '__main__':
