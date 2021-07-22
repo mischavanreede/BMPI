@@ -90,10 +90,10 @@ services:
         max-size: '500k'
         max-file: '5'
         
-volumes:
-  ${PWD}/elasticsearch/data:
-    driver: local
-    external: true
+#volumes:
+#  ${PWD}/elasticsearch/data:
+#    driver: local
+#    external: true
 
 networks:
   es_network:
