@@ -11,19 +11,19 @@ services:
         #image: blacktop/elasticsearch:x-pack-7.10.2
         container_name: elasticsearch
         environment:         
-            - node.name: es01
-            - network.host: 0.0.0.0
-            - http.port: 9200
-            - cluster.name: docker-cluster
-            - node.master: true
-            - discovery.type: single-node
-            - bootstrap.memory_lock: true
-            # - http.cors.enabled: true
-            # - http.cors.allow-origin: *
-            - ES_JAVA_OPTS: "-Xms512m -Xmx512m"
-            - elasticsearch.username: elastic
-            - elasticsearch.password: pleasechangeme #LfcLo2lDNCHkzwOWI50A
-            - xpack.security.enabled: true
+            node.name: es01
+            network.host: 0.0.0.0
+            http.port: 9200
+            cluster.name: docker-cluster
+            node.master: 'true'
+            discovery.type: single-node
+            # bootstrap.memory_lock: true
+            # http.cors.enabled: true
+            # http.cors.allow-origin: *
+            ES_JAVA_OPTS: '-Xms512m -Xmx512m'
+            elasticsearch.username: elastic
+            elasticsearch.password: pleasechangeme #LfcLo2lDNCHkzwOWI50A
+            xpack.security.enabled: 'true'
 
         restart: on-failure
         ulimits:
@@ -44,28 +44,28 @@ services:
         networks:
           - es_network
         logging:
-         driver: "json-file"
+         driver: 'json-file'
          options:
           # limit logs retained on host to 25MB
-          max-size: "500k"
-          max-file: "5"
+          max-size: '500k'
+          max-file: '5'
  
     
     # https://hub.docker.com/r/blacktop/kibana    
     kibana:
-      #image: blacktop/kibana:x-pack-7.10.2
       image: docker.elastic.co/kibana/kibana:7.13.4
+      #image: blacktop/kibana:x-pack-7.10.2
       container_name: kibana
       environment:
-        - SERVER_NAME:'localhost'
-        - server.host: 0.0.0.0
-        - server.port: 5601
-        - ELASTICSEARCH_URL: http://elasticsearch:9200
-        - ELASTICSEARCH_HOSTS: http://elasticsearch:9200
-        - elasticsearch.username: elastic
-        - elasticsearch.password: pleasechangeme #LfcLo2lDNCHkzwOWI50A
-        - xpack.security.enabled: true
-        #- xpack.encryptedSavedObjects.encryptionKey: "password_of_at_least_32_characters"
+        server.name: mvreede-vm
+        server.host: 0.0.0.0
+        server.port: 5601
+        ELASTICSEARCH_URL: http://elasticsearch:9200
+        ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+        elasticsearch.username: elastic
+        elasticsearch.password: pleasechangeme #LfcLo2lDNCHkzwOWI50A
+        xpack.security.enabled: 'true'
+        #xpack.encryptedSavedObjects.encryptionKey: "password_of_at_least_32_characters"
       depends_on:
           - elasticsearch
       restart: on-failure
@@ -80,11 +80,11 @@ services:
           soft: -1
           hard: -1
       logging:
-       driver: "json-file"
+       driver: 'json-file'
        options:
         # limit logs retained on host to 25MB
-        max-size: "500k"
-        max-file: "5"
+        max-size: '500k'
+        max-file: '5'
         
 volumes:
   esdata:
