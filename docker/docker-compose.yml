@@ -7,8 +7,8 @@ services:
     # Useful docker commands: https://blog.softwaremill.com/how-to-keep-your-docker-installation-clean-98a74eb7e7b3
     # Local Volume location: \\wsl$\docker-desktop-data\version-pack-data\community\docker\volumes
     elasticsearch:
-        image: docker.elastic.co/elasticsearch/elasticsearch:7.13.4
-        #image: blacktop/elasticsearch:x-pack-7.10.2
+        image: blacktop/elasticsearch:x-pack-7.10.2
+        #image: docker.elastic.co/elasticsearch/elasticsearch:7.13.4
         container_name: elasticsearch
         environment:         
             node.name: es01
@@ -24,7 +24,6 @@ services:
             elasticsearch.username: elastic
             elasticsearch.password: pleasechangeme #LfcLo2lDNCHkzwOWI50A
             xpack.security.enabled: 'true'
-
         restart: 'no'
         ulimits:
           memlock:
@@ -38,9 +37,9 @@ services:
         volumes:
           #- "./../data/esdata1:/usr/share/elasticsearch/data"
           - ./elasticsearch/data:/usr/share/elasticsearch/data
-          - type: bind
-            source: ./elasticsearch/elasticsearch.yml
-            target: /etc/elasticsearch/elasticsearch.yml
+          # - type: bind
+          #   source: ./elasticsearch/elasticsearch.yml
+          #   target: /etc/elasticsearch/elasticsearch.yml
         ports:
           - 9200:9200
         networks:
@@ -55,8 +54,8 @@ services:
     
     # https://hub.docker.com/r/blacktop/kibana    
     kibana:
-      image: docker.elastic.co/kibana/kibana:7.13.4
-      #image: blacktop/kibana:x-pack-7.10.2
+      image: blacktop/kibana:x-pack-7.10.2
+      #image: docker.elastic.co/kibana/kibana:7.13.4
       container_name: kibana
       environment:
         server.name: mvreede-vm
@@ -74,9 +73,9 @@ services:
       ports:
         - 5601:5601
       volumes:
-          - type: bind
-            source: ./kibana/kibana.yml
-            target: /usr/share/kibana/config/kibana.yml
+          # - type: bind
+          #   source: ./kibana/kibana.yml
+          #   target: /usr/share/kibana/config/kibana.yml
       networks:
         - es_network
       ulimits:
