@@ -25,7 +25,7 @@ services:
             elasticsearch.password: pleasechangeme #LfcLo2lDNCHkzwOWI50A
             xpack.security.enabled: 'true'
 
-        restart: on-failure
+        restart: 'no'
         ulimits:
           memlock:
             soft: -1
@@ -37,9 +37,9 @@ services:
         #   - ALL
         volumes:
           #- "./../data/esdata1:/usr/share/elasticsearch/data"
-          - ${PWD}/elasticsearch/data:/usr/share/elasticsearch/data
+          - ./elasticsearch/data:/usr/share/elasticsearch/data
           - type: bind
-            source: ${PWD}/elasticsearch/elasticsearch.yml
+            source: ./elasticsearch/elasticsearch.yml
             target: /etc/elasticsearch/elasticsearch.yml
         ports:
           - 9200:9200
@@ -70,12 +70,12 @@ services:
         #xpack.encryptedSavedObjects.encryptionKey: "password_of_at_least_32_characters"
       depends_on:
           - elasticsearch
-      restart: on-failure
+      restart: 'no'
       ports:
         - 5601:5601
       volumes:
           - type: bind
-            source: ${PWD}/kibana/kibana.yml
+            source: ./kibana/kibana.yml
             target: /usr/share/kibana/config/kibana.yml
       networks:
         - es_network
