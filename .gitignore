@@ -1,5 +1,6 @@
 # Project data
 data/esdata1
+docker/elasticsearch/data
 
 
 # ---------------------
