@@ -312,7 +312,7 @@ class ElasticsearchIndexes():
             "mappings": {
                 "properties": {
                     "block_data_source": {"type": "text"},
-                    "attribution_data_file": {"type": "text"},
+                    "attribution_data_json_file": {"type": "text"},
                     "block_height": {"type": "integer"},
                     "block_hash": {"type": "text"},
                     "has_pool_name_attributed":{ "type": "boolean"},
