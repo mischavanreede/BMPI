@@ -137,6 +137,19 @@ class BlockchainScraper(RestRequests):
         single_block_url = self.base_url + "rawblock/" + block_hash
         result = super().get(single_block_url)
         return result
+    
+    def getHashAtHeight(self, block_height):
+        assert isinstance(block_height, int)
+        block_height_url = self.base_url + "block-height/" + str(block_height) + "?format=json"
+        result = super().get(block_height_url)
+        
+        hash_list = []
+        for block in result['blocks']:
+            hash_list.append(block['hash'])
+        
+        return hash_list
+        
+        
 
     def getBlocksAtHeight(self, block_height):
         """

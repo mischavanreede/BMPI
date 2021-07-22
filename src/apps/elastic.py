@@ -85,7 +85,9 @@ class ElasticsearchController():
             # Create needed databases/indices
             if not self.__index_exists(index):
                 body = {**ElasticsearchIndexes.SETTINGS, **ElasticsearchIndexes.MAPPINGS[index]}
-                self.__create_index(index_name=index, index_body=body)        
+                self.__create_index(index_name=index, index_body=body)
+                continue
+            self.logger.info("Index {} already exists.".format(index))
         self.logger.info("All indices have been created.")
     
         
@@ -282,25 +284,77 @@ class ElasticsearchIndexes():
     #https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-params.html
 
     MAPPINGS = {
-        "blocks": {
-                "mappings": {
-                    "properties": {
-                        "hash": {"type": "text"},
-                        "prev_block": {"type": "text"},
-                        "height": {"type": "integer"},
-                        "time_stamp": {"type": "date"},
-                        "mining_pool_message": {
-                            "type": "text",
-                            "fields": {
-                                "raw": {
-                                    "type": "keyword"
-                                }
-                            }
-                        },
-                        "coinbase_tx": {"type": "flattened"},
+        "blocks_from_scrapers": {
+            "mappings": {
+                "properties": {
+                    "block_hash": {"type": "text"},
+                    "prev_block_hash": {"type": "text"},
+                    "block_height": {"type": "integer"},
+                    "timestamp" : {"type": "date"},
+                    "coinbase_tx_hash": {"type": "text"},
+                    "coinbase_message": {"type": "text"},
+                    "pool_address": {"type": "text"},
+                    "fee_block_reward": {"type": "integer"}, 
+                    "total_block_reward": {"type": "integer"}
                     } 
-                  
                 }
+            },
+        "skipped_blocks": {
+            "mappings": {
+                "properties": {
+                     "block_height": {"type": "integer"},
+                     "block_hash": {"type": "text",
+                                    "null_value": "NOT_FOUND"}
+                    }                
+                }
+            },
+        "pool_name_attributions": {
+            "mappings": {
+                "properties": {
+                    "block_data_source": {"type": "text"},
+                    "attribution_data_file": {"type": "text"},
+                    "block_height": {"type": "integer"},
+                    "block_hash": {"type": "text"},
+                    "has_pool_name_attributed":{ "type": "boolean"},
+                    "pool_name": {"type": "text"}
+                    }                
+                }
+            },
+        "CONFLICT_API_block_data_conflicts": {
+            "mappings": {
+                "properties": {
+                    "block_height": {"type": "integer"},
+                    "block_hash": {"type": "text"},
+                    "gathered_information": {
+                           "scraper": {"type": "text"},
+                           "gathered_block": {"type": "flattened"}
+                                
+                        
+                        }
+                    }                
+                }
+            },
+        "CONFLICT_pool_name_attribution_mismatch": {
+            "mappings": {
+                "properties": {
+                    "block_height": {"type": "integer"},
+                    "block_hash": {"type": "text"},
+                    "payout_address_pool_name": {"type": "text"},
+                    "coinbase_tag_pool_name": {"type": "text"},
+                    "block": {"type": "flattened"}
+                    }                
+                }
+            },
+        "CONFLICT_multiple_cb_tag_matches": {
+            "mappings": {
+                "properties": {
+                    "block_hash": {"type": "text"},
+                    "block_height": {"type": "integer"},
+                    "coinbase_tag_pool_names": {"type": "text"},
+                    "block": {"type": "flattened"}
+                    }
+                }
+            
             }
         
         }

@@ -30,90 +30,138 @@ x update pool_data.json to allow for multiple coinbase tags for the same mining 
 # package imports
 import logging
 from configparser import ConfigParser
+import click
 
 # project imports
 from apps.BMPI_functions import BMPIFunctions
 
-class BMPI():
-    def __init__(self):
-        self.config = self.initialize_config()
-        self.logger = self.initialize_logger()
 
-    @staticmethod
-    def initialize_config():
-        config = ConfigParser()
-        config.read("config/settings.conf")
-        return config
+   
 
-    def initialize_logger(self): #For logging, look at: https://docs.python.org/3/howto/logging.html  and  https://docs.python.org/3/howto/logging.html#logging-advanced-tutorial
-        """
-        A method that initializes logging
-        # https://docs.python.org/3/howto/logging-cookbook.html#logging-to-multiple-destinations
-        https://www.youtube.com/watch?v=jxmzY9soFXg
+@staticmethod
+def initialize_config():
+    config = ConfigParser()
+    config.read("config/settings.conf")
+    return config
 
-        Levels:
-            DEBUG:      Detailed information, typically of interest only when diagnosing problems.
-            INFO:       Confirmation that things are working as expected.
-            WARNING:    An indication that something unexpected happened, or indicative of some problem in the near future (e.g. ‘disk space low’). The software is still working as expected.
-            ERROR:  	Due to a more serious problem, the software has not been able to perform some function.
-            CRITICAL:  	A serious error, indicating that the program itself may be unable to continue running.
-            EXCEPTION:  Includes a traceback to mot recent method call
+def initialize_logger(self): #For logging, look at: https://docs.python.org/3/howto/logging.html  and  https://docs.python.org/3/howto/logging.html#logging-advanced-tutorial
+    """
+    A method that initializes logging
+    # https://docs.python.org/3/howto/logging-cookbook.html#logging-to-multiple-destinations
+    https://www.youtube.com/watch?v=jxmzY9soFXg
 
-        TODO:   - Add date to log file to prevent them growing too big
-                - Perhaps implement log file 'rotation'
-                - Put and obtain settings from loggin.conf
-                https://stackoverflow.com/questions/15727420/using-logging-in-multiple-modules
-            
-        
-        """
-        
-        # set up logging to file - see previous section for more details
-        # logging.basicConfig(level=logging.DEBUG,
-        #                     format='%(asctime)s.%(msecs)d | %(name)s | %(module)s-%(lineno)8s | %(levelname)-8s | %(message)s',
-        #                     datefmt='%m-%d %H:%M:%S',
-        #                     filename=self.config['constants']['LOG_FILE_PATH'],
-        #                     filemode='w')
-        
-        bmpi_logger = logging.getLogger("BMPI")
-        bmpi_logger.setLevel(logging.DEBUG)
-        
-        # Set log format
-        #formatter = logging.Formatter('%(asctime)s | %(name)s | %(module)4s-%(lineno)4s | %(levelname)-8s | %(message)s')
-        formatter = logging.Formatter('%(asctime)s | %(name)s | %(levelname)-8s | (%(filename)s:%(lineno)s) -- %(message)s')
-        formatter.datefmt = '%Y-%m-%d %H:%M:%S'
-        
-        # Clears existing handlers to prevent duplicating logs on consequent runs
-        if (bmpi_logger.hasHandlers()):
-            bmpi_logger.handlers.clear()
-        
-        # Create file handler, Obtains log file location from config (settings.conf)
-        file_path = self.config.get('Logging', 'LOG_FILE_PATH')
-        file_handler = logging.FileHandler(filename=file_path, mode='a',encoding='utf-8')
-        file_handler.filemode = 'w'
-        file_handler.setFormatter(formatter)
-        
-        # Create stream handler for console output
-        stream_handler = logging.StreamHandler()
-        stream_handler.setLevel(logging.INFO)
-        stream_handler.setFormatter(formatter)
-        
-        # Add handlers to logger
-        bmpi_logger.addHandler(file_handler)
-        bmpi_logger.addHandler(stream_handler)
-        
-        # Stop logs from propagating to the root logger
-        #bmpi_logger.propagate = False
-        
-        return bmpi_logger
+    Levels:
+        DEBUG:      Detailed information, typically of interest only when diagnosing problems.
+        INFO:       Confirmation that things are working as expected.
+        WARNING:    An indication that something unexpected happened, or indicative of some problem in the near future (e.g. ‘disk space low’). The software is still working as expected.
+        ERROR:  	Due to a more serious problem, the software has not been able to perform some function.
+        CRITICAL:  	A serious error, indicating that the program itself may be unable to continue running.
+        EXCEPTION:  Includes a traceback to mot recent method call
 
+    TODO:   - Add date to log file to prevent them growing too big
+            - Perhaps implement log file 'rotation'
+            - Put and obtain settings from loggin.conf
+            https://stackoverflow.com/questions/15727420/using-logging-in-multiple-modules
+        
     
-    def run(self):
-        
-        BMPI = BMPIFunctions(config=self.config, logger=self.logger)
-        
-        BMPI.runScrapers()
-        #BMPI.run()
+    """
     
+    # set up logging to file - see previous section for more details
+    # logging.basicConfig(level=logging.DEBUG,
+    #                     format='%(asctime)s.%(msecs)d | %(name)s | %(module)s-%(lineno)8s | %(levelname)-8s | %(message)s',
+    #                     datefmt='%m-%d %H:%M:%S',
+    #                     filename=self.config['constants']['LOG_FILE_PATH'],
+    #                     filemode='w')
+    
+    bmpi_logger = logging.getLogger("BMPI")
+    bmpi_logger.setLevel(logging.DEBUG)
+    
+    # Set log format
+    #formatter = logging.Formatter('%(asctime)s | %(name)s | %(module)4s-%(lineno)4s | %(levelname)-8s | %(message)s')
+    formatter = logging.Formatter('%(asctime)s | %(name)s | %(levelname)-8s | (%(filename)s:%(lineno)s) -- %(message)s')
+    formatter.datefmt = '%Y-%m-%d %H:%M:%S'
+    
+    # Clears existing handlers to prevent duplicating logs on consequent runs
+    if (bmpi_logger.hasHandlers()):
+        bmpi_logger.handlers.clear()
+    
+    # Create file handler, Obtains log file location from config (settings.conf)
+    file_path = self.config.get('Logging', 'LOG_FILE_PATH')
+    file_handler = logging.FileHandler(filename=file_path, mode='a',encoding='utf-8')
+    file_handler.filemode = 'w'
+    file_handler.setFormatter(formatter)
+    
+    # Create stream handler for console output
+    stream_handler = logging.StreamHandler()
+    stream_handler.setLevel(logging.INFO)
+    stream_handler.setFormatter(formatter)
+    
+    # Add handlers to logger
+    bmpi_logger.addHandler(file_handler)
+    bmpi_logger.addHandler(stream_handler)
+    
+    # Stop logs from propagating to the root logger
+    #bmpi_logger.propagate = False
+    
+    return bmpi_logger
+
+
+@click.group()
+def bmpi(self):
+    """
+    This will be executed on every application call.
+
+    """
+    pass
+
+
+#https://stackoverflow.com/questions/67297248/noninteractive-confirmation-of-eager-options-in-the-python-click-library
+@bmpi.command()
+@click.option()
+@click.confirmation_option()
+def deleteStoredData():
+    '''
+    
+
+    Returns
+    -------
+    None.
+
+    '''
+    pass
+
+
+def gatherApiBlockData():
+    '''
+    Gathers block data from API scrapers and stores data in elasticsearch.
+    '''
+    pass
+
+
+
+
+
+
+
+
+
+
+
+
+
+def run(self):
+
+    BMPI = BMPIFunctions(config=self.config, logger=self.logger)
+    #BMPI.runScrapers()
+    #BMPI.run()
+    
+
+
+
 
 if __name__ == '__main__':
-    BMPI().run()
+    
+    config = initialize_config()
+    logger = initialize_logger()
+    
+    bmpi()

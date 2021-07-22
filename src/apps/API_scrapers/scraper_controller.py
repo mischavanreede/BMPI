@@ -25,7 +25,7 @@ from .blockstream_scraper import BlockstreamScraper
 #from .btc_scraper import BtcScraper
 
 
-
+import time
 import json
 from itertools import groupby
 
@@ -110,6 +110,7 @@ class ScraperController:
     def __constructConflictingApiInformationDataEntry(self, block_hash, block_info_list):
         entry = {
             "block_hash": block_hash,
+            "block_height": None,
             "gathered_data": [
                 {
                 "scraper": scraper,
@@ -169,37 +170,49 @@ class ScraperController:
         with open(file="../pools/pool_data.json", mode='w', encoding='utf-8') as jsonFile:
             json.dump(data, jsonFile, indent=4, sort_keys=True)
 
-
-    def getLatestBlockHeight(self):
-        latest_height_list = []
-        self.logger.debug("Obtianing latest block height from all implemented scrapers.")
-        for scraper in self.scrapers:
-            latest_height_list.append(scraper.getLatestBlockHeight())
-        if self.all_equal(latest_height_list):
-            self.logger.debug("Obtained block heights are all equal, returning latest height.")
-            return latest_height_list[0]
-        else:
-            self.logger.warning("Obtained block heights do not match. Please check the logs")
-            self.logger.warning("Gathered the following information: {}".format([list(zip(self.scrapers, latest_height_list))]))
-            self.logger.debug("Returning the lowest height number to continue.")
-            return min(latest_height_list)
     
-    def getLatestBlockHash(self):
+    def getBlockHashAtHeight(self, height):
+        self.logger.debug("Obtaining hash at height [{}] from both scrapers".format(height))
+        # Hash from Blockstream.info scraper, returns single value
+        blockstream_hash = self.blockstream_scraper.getHashAtHeight(height)
+        self.logger.debug("Blockstream scraper returned: {}".format(blockstream_hash))
+        
+        # Hash from Blockchain.com scraper, returns list of hashes
+        blockchain_hash = self.blockchain_scraper.getHashAtHeight(height)
+        self.logger.debug("Blockchain.com scraper returned: {}".format(blockchain_hash))
+        
+        if len(blockchain_hash) > 1:
+            self.logger.info("Blockchain.com returned multiple hashes at height: {}".format(height))
+        
+        if blockstream_hash in blockchain_hash:
+            self.logger.debug("Found a matching hash.")
+            self.logger.debug("Assuming that the matching hash is the right one.")
+            return blockstream_hash
+        
+        self.logger.warning("No matching hash found at block height: {}".format(height))
+        return None                    
+   
+    def getLatestBlockHashAndHeight(self):
         latest_hash_list = []
-        self.logger.debug("Obtianing latest block hash from all implemented scrapers.")
+        latest_height_list = []
+        self.logger.debug("Obtaining latest block hash and height from all implemented scrapers.")
         for scraper in self.scrapers:
             latest_hash_list.append(scraper.getLatestBlockHash())
+            latest_height_list.append(scraper.getLatestBlockHeight())
+
+        
         if self.all_equal(latest_hash_list):
-            self.logger.debug("Obtained hashes are all equal, returning latest hash.")
-            return latest_hash_list[0]
-        else:
-            self.logger.warning("Obtained block heights do not match. Please check the logs")
-            self.logger.warning("Gathered the following information: {}".format(zip(self.scrapers, latest_hash_list)))
-            self.logger.warning("Returning the first hash to continue for now.")
-            return latest_hash_list[0]
+            self.logger.debug("Obtained hashes are all equal.")
+            if self.all_equal(latest_height_list):
+                self.logger.debug("Obtained block heights are all equal")
+                return latest_hash_list[0], latest_height_list[0]
+
+        self.logger.warning("Obtained block heights do not match. Please check the logs")
+        self.logger.warning("Gathered the following information: {}".format(zip(self.scrapers, latest_hash_list)))
+        raise Exception("Mismatch in latest hash and or latest height of block.")
 
     
-    def getBlockInfoListFromScrapers(self, block_hash):
+    def getBlockInfoFromScrapers(self, block_hash):
         block_info_list = []
         #Get block from scrapers
         for scraper in self.scrapers:
@@ -211,18 +224,19 @@ class ScraperController:
             # All blocks are equal, so returning the first one
             self.logger.debug("Obtained blocks with hash [{}] are equal.".format(block_hash))
             block_to_return = block_info_list[0]
-            self.logger.debug("Attributing mining pool to block: {}".format(block_hash))
-            self.attributePoolNameToBlock(block_to_return)
-            return block_to_return
+            #self.logger.debug("Attributing mining pool to block: {}".format(block_hash))
+            #self.attributePoolNameToBlock(block_to_return)
+            return {"status": "success",
+                    "block": block_to_return}
         
         else: # Blocks are not equal
-            self.logger.warning("Conflict in data obtained from scrapers. The obtained block data is not equal. Please inspect the logs.")
-            self.logger.warning("Found a mismatch in the blocks with hash [{}]:".format(block_hash))
+            self.logger.warning("Conflict in data obtained from scrapers (Conflicting API information). The obtained block data is not equal. Please inspect the logs.")
+            self.logger.warning("Conflict found in block: {}".format(block_hash))
             self.conflict_encoutered = True
 
             prev_hashes = []
             for scraper, block in zip(self.scrapers, block_info_list):
-                self.attributePoolNameToBlock(block)
+                #self.attributePoolNameToBlock(block)
                 prev_hashes.append(block['prev_block_hash'])
                  
             conflict_entry = self.__constructConflictingApiInformationDataEntry(block_hash, block_info_list)
@@ -230,34 +244,35 @@ class ScraperController:
                 
             if self.all_equal(prev_hashes):
                 self.logger.info("Previous hashes are equal.")
-                self.logger.info("Returning first block becasue prev_hashes are equal.")
-                self.logger.warning("Please inspect the logs (conflicting_API_information) for block: {}".format(block_hash))
-                return block_info_list[0]
+                
+                return {"status": "conflict",
+                        "prev_hash_equal": True,
+                        "prev_hash": prev_hashes[0],
+                        "conflict_entry": conflict_entry}
             else:
-                self.logger.exception("Conflict in a prev_hash field of blocks. Couldn't determine which block to return.")
-                raise Exception("Conflict in a prev_hash field of blocks. Couldn't determine which block to return.")
+                self.logger.warning("Couldn't determine prev_hash. Returning conflict data.")
+                return {"status": "conflict",
+                        "prev_hash_equal": False,
+                        "conflict_entry": conflict_entry}
 
     
-    def getLastBlocks(self, n=1):
-        previous_hash = self.getLatestBlockHash()
-        latest_height = self.getLatestBlockHeight()
-        blocks = []
-        #times = []
-        self.logger.info("Gathering the last n={} blocks, starting from height={} and block hash: {}".format(n, latest_height, previous_hash))
-        for i in range(n):
-            self.logger.debug("")
-            self.logger.info("Gathering block at height: {}".format(latest_height-i))
-            self.logger.debug("Gathering block at with hash: {}".format(previous_hash))
-            #tic = time.perf_counter()
-            block_info = self.getBlockInfoListFromScrapers(previous_hash)
-            #toc = time.perf_counter()
-            #times.append(round(toc - tic, 4))
-            blocks.append(block_info)
-            previous_hash = block_info['prev_block_hash']
-        # self.logger.info("Printing results to terminal:")
-        # for block in blocks:
-        #     print("Block at height: {}".format(block['block_height']))
-        #     Utils.prettyPrint(block)
+    # def getLastBlocks(self, n=1):
+    #     previous_hash = self.getLatestBlockHash()
+    #     latest_height = self.getLatestBlockHeight()
+    #     blocks = []
+    #     #times = []
+    #     self.logger.info("Gathering the last n={} blocks, starting from height={} and block hash: {}".format(n, latest_height, previous_hash))
+    #     for i in range(n):
+    #         self.logger.debug("")
+    #         self.logger.info("Gathering block at height: {}".format(latest_height-i))
+    #         self.logger.debug("Gathering block at with hash: {}".format(previous_hash))
+    #         tic = time.perf_counter()
+    #         block_info = self.getBlockInfoListFromScrapers(previous_hash)
+    #         toc = time.perf_counter()
+    #         #times.append(round(toc - tic, 4))
+    #         blocks.append(block_info)
+    #         previous_hash = block_info['prev_block_hash']
+
         
         #print("Average time per block request: {}".format(sum(times)/len(times)))
              
@@ -269,12 +284,16 @@ class ScraperController:
         payout_address = block['pool_address']
         coinbase_message = block['coinbase_message']
         
+        
+        
         # TODO: combine various pool_data sources
         # TODO: implement check for multiple output addresses
         # TODO: add logger info
         
         if payout_address in self.pool_data_json['payout_addresses']:
             address_match_pool_name = self.pool_data_json['payout_addresses'][payout_address]['name']
+            self.logger.debug("Found a matching payout address (match={})".format(address_match_pool_name))
+            self.logger.debug("Payout address = {}".format(payout_address))
                         
             # Check if the miner uses it's pool tag
             if explicitly_find_tag_match:
@@ -289,9 +308,9 @@ class ScraperController:
                         self.conflict_encoutered = True
                         tag_match_pool_name = pool_info['name']
                         self.logger.info("Naming conflict occured in attributing pool name to block: {}".format(block['block_hash']))
-                        self.logger.debug("Found matches; address_match_pool_name={} , tag_match_pool_name={}".format(address_match_pool_name, tag_match_pool_name))
                         self.logger.debug("Coinbase message = {}".format(block['coinbase_message']))
                         self.logger.info("Found conflicting matches for pool_names. Please inspect the logs")
+                        self.logger.debug("Found matches; address_match_pool_name={} , tag_match_pool_name={}".format(address_match_pool_name, tag_match_pool_name))
                         self.logger.debug("Saving conflicts to (conflicting_pool_name_attribution) entry in conflict JSON")
                         self.logger.debug("Attributing payout_address match as this match takes precedence.")
         
@@ -303,8 +322,8 @@ class ScraperController:
                         return
 
                 self.logger.debug("Found a matching payout address (match={}), but no matching coinbase tag.".format(address_match_pool_name))
-                self.logger.debug("Saving block with message for manual inspection")
                 self.logger.debug("Coinbase message = {}".format(block['coinbase_message']))
+                self.logger.debug("Saving block with message for manual inspection")
                 #TODO: safe blocks in seperate json file
                 self.logger.debug("Block attributed to: {}".format(address_match_pool_name))
                 block['pool_name'] = address_match_pool_name

@@ -72,6 +72,10 @@ class BlockstreamScraper(RestRequests):
         result = explorer.addr.get(bitcoin_address)
         return result.data
     
+    def getHashAtHeight(self, block_height):
+        result = explorer.blocks.get_height(block_height)
+        return result.data
+    
     def getBlocksAtHeight(self, block_height):
         hash_at_height = explorer.blocks.get_height(block_height).data
         block = self.getBlock(hash_at_height)

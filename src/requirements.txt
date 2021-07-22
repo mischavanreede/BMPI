@@ -4,3 +4,4 @@ elasticsearch==7.10.1
 elasticsearch-dsl==7.3.0
 bloxplorer==0.1.9
 more-itertools==8.8.0
+click==8.0.1 

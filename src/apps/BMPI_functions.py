@@ -8,6 +8,7 @@
 
 import json
 import time
+import click
 
 from .elastic import ElasticsearchController
 from .API_scrapers.scraper_controller import ScraperController
@@ -34,87 +35,116 @@ class BMPIFunctions():
         self.scraper_controller = ScraperController(config=self.config, logger=self.logger)
 
         
-    # def store_most_recent_block_in_es(self):
+
+
+    
+    
+    
+    def removeStoredElasticsearchData(self):
+        pass
+    
+    
+    def gatherAndStoreMissingBlocksFromScrapers(self):
+        pass
+    
+    def gatherAndStoreBlocksFromScrapers(self):
         
-    #     # Make sure the controller is connected to a running ES instance
-    #     assert(self.es_controller.isConnected())
+        latest_block_hash, latest_height = self.scraper_controller.getLatestBlockHashAndHeight()
         
+        block_height = latest_height
+        previous_block_hash = latest_block_hash
         
+        block_list = []
+        API_conflicts = []
         
-    #     block = self.blockchain_scraper.getLatestBlock()
-    #     #remove tx for now
+        while block_height >= 0:
+            # on intervals where 1000 blocks have been gathered, 
+                # store block_list and API_conflicts in Elasticsearch
+            if block_height % 1000 == 0:
+                # Store succesfully gathered blocks
+                if self.es_controller.bulk_store(records=block_list, index="blocks_from_scrapers"):
+                    # bulk store succesfull, emptying list
+                    block_list = []
+                
+                # Store API data conflicts
+                if self.es_controller.bulk_store(records=API_conflicts, index="CONFLICT_API_block_data_conflicts"):
+                    #bulk store succesfull, emptying list
+                    API_conflicts = []
+           
+            try:
+                result = self.scraper_controller.getBlockInfoFromScrapers(previous_block_hash)
+                
+                if result['status'] == "success":
+                    block = result['block']
+                    # Add block to list
+                    block_list.append(block)
+                    # Decrease block_height by 1 and set previous hash
+                    previous_block_hash = block['prev_block_hash']
+                    block_height -= 1
+                
+                elif result['status'] == "conflict":
+                    result['conflict_entry']['block_height'] = block_height
+                    # Add conflict block to list
+                    API_conflicts.append(result['conflict_entry'])
+                    # Add skipped block to es
+                    es_entry = {
+                        "block_height": block_height,
+                        "block_hash": previous_block_hash
+                        }
+                    self.es_controller.store(record=es_entry, index="skipped_blocks")
+                    
+                    # Set variables for next iteration of outer while
+                    if result['prev_hash_equal']:
+                        previous_block_hash = result['prev_hash']
+                        # manually decrease block_height 
+                        block_height -= 1
+     
+                    else:
+                        # Keep decreasing until a matching previous hash is found
+                        while True:
+                            # if prev_hash is not the same, get that the hash at that height from the scrapers
+                            previous_height = block_height - 1
+                            previous_hash = self.scraper_controller.getBlockHashAtHeight(previous_height)
+                            #TODO: Maybe add reason for skipping in the skipped_blocks index.
+                            if previous_hash is None:
+                                es_entry = {
+                                    "block_height": previous_height,
+                                    "block_hash": None
+                                    }
+                                self.es_controller.store(record=es_entry, index="skipped_blocks")
+                            
+                            if previous_hash is not None:
+                                # set height and prev_hash for following itteration of outer while
+                                block_height = previous_height
+                                previous_block_hash = previous_hash
+                                break
+  
+            except:
+                # catch timeout errors and other exceptions
+                continue
+            
+            else: 
+                # No exception occurred
+                pass
+            
+            finally:
+                pass
+                #code that is run after each try
         
-    #     block.pop('tx')
+                
         
-    #     #self.logger.info("Block/record type: [{}]".format(type(block)))
-    #     block_hash = block['hash']
-        
-    #     #store record        
-    #     self.es_controller.store(record=block, index_name="first_index")
-    #     self.logger.info("Block [{}] at height [{}] stored succesfully".format(block_hash, block['height']))
-        
-    #     #query data record
-    #     self.logger.info("Quering block with hash [{}] from es instance".format(block_hash))
-    #     result = self.es_controller.query_es(index="first_index", query=block_hash)
-    #     self.logger.info("Got the following result: [{}]".format(result))
-        
-    #     print("done")
         
 
-    # def store_last_n_blocks_in_es(self, n=1):
-    #     assert (n>0) and self.es_controller.isConnected()
-        
-        
-    #     blocks = []
-    #     i = n
-    #     latest_block_height = self.blockchain_scraper.getLatestBlockHeight()
-    #     latest_blocks = self.blockchain_scraper.getBlocksAtHeight(block_height=latest_block_height)
-    #     self.logger.info("Gathering the last {} block(s), starting from height {}".format(n, latest_block_height))
-    #     if len(latest_blocks) != 1:
-    #         # TODO: implement this scenario
-    #         print("Found multiple blocks at current height: {}".format(latest_block_height))
-    #         print("Exiting because this scenario is not coded yet.")
-    #         return
-    #     else:    
-    #         latest_block = latest_blocks[0]
-    #         latest_block = self.blockchain_scraper.pruneUserTransactionsFromBlock(latest_block)
-    #         prev_block_hash = self.blockchain_scraper.extractPrevBlockHash(latest_block)
-    #         blocks.append(self.transformBlock(latest_block))
-    #         i-=1
-            
-    #         while i>0:
-    #             prev_block = self.blockchain_scraper.getBlock(prev_block_hash)    
-    #             prev_block = self.blockchain_scraper.pruneUserTransactionsFromBlock(prev_block)
-    #             prev_block_hash = self.blockchain_scraper.extractPrevBlockHash(prev_block)
-    #             #append block in format specified by the index mapping
-    #             blocks.append(self.transformBlock(prev_block))
-    #             i-=1
-        
-    #     self.logger.info("Finished gathering the last n={} blocks".format(n))      
-        
-        
-    #     # store blocks
-    #     self.es_controller.bulk_store(records=blocks, index_name='blocks')
-    #     print("done")
-    #     return
     
-    
-    # def getLastNPoolNamesFromBtcComScraper(self, n=10):
-        
-    #     latest_hash = self.btc_scraper.getLatestBlockHash()
-    #     latest_pool_message = self.btc_scraper.getBlock(latest_hash)['extras']['pool_name']
-    #     print(latest_pool_message)
-    #     prev_block_hash = self.btc_scraper.getPrevBlockHash(latest_hash)
-        
-    #     for i in range(n):
-    #         pool_message = self.btc_scraper.getBlock(prev_block_hash)['extras']['pool_name']
-    #         print(pool_message)
-    #         prev_block_hash = self.btc_scraper.getPrevBlockHash(prev_block_hash)
-    #     print("Done.")
-    
-    
-    def emptyElasticsearch(self):
+    def attributePoolNames(self):
+        '''
+        add click parameter to choose which data to use(API scaper data or node data)
+        possible also which pool_data.json to use
+        store in seperate indices
+        '''
         pass
+    
+    
     
     
     def runScrapers(self):
@@ -126,3 +156,10 @@ class BMPIFunctions():
         file =  open(file='../pools/pool_data.json', mode='r', encoding='utf-8')
         combined_pool_data_json = json.load(file)
         file.close()
+        
+        
+    
+        
+        
+        
+    
