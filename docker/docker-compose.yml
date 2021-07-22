@@ -21,8 +21,9 @@ services:
             # http.cors.enabled: true
             # http.cors.allow-origin: *
             ES_JAVA_OPTS: '-Xms512m -Xmx512m'
-            elasticsearch.username: elastic
-            elasticsearch.password: pleasechangeme #LfcLo2lDNCHkzwOWI50A
+            #elasticsearch.username: 'elastic'
+            #elasticsearch.password: 'pleasechangeme'
+            #LfcLo2lDNCHkzwOWI50A
             xpack.security.enabled: 'true'
         restart: 'no'
         ulimits:
@@ -63,8 +64,8 @@ services:
         server.port: 5601
         ELASTICSEARCH_URL: http://elasticsearch:9200
         ELASTICSEARCH_HOSTS: http://elasticsearch:9200
-        elasticsearch.username: elastic
-        elasticsearch.password: pleasechangeme #LfcLo2lDNCHkzwOWI50A
+        elasticsearch.username: 'elastic'
+        elasticsearch.password: 'pleasechangeme' #LfcLo2lDNCHkzwOWI50A
         xpack.security.enabled: 'true'
         #xpack.encryptedSavedObjects.encryptionKey: "password_of_at_least_32_characters"
       depends_on:
