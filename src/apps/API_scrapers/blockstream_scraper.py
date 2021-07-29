@@ -13,6 +13,8 @@ Documentation
 Improvement idea: to avoid duplicate API calls, extract neccesary information in one method 
 """
 
+import time
+
 from bloxplorer import bitcoin_explorer as explorer
 
 from .generic_rest_requests import RestRequests
@@ -116,8 +118,42 @@ class BlockstreamScraper(RestRequests):
         -------
         block_information : dict.
         """
+        max_tries = 3
         self.logger.debug("Querying Blockstream.info API to obtain block information.")
-        block = self.getBlock(block_hash)
+        
+        for attempt in range(max_tries):
+            try:
+                self.logger.debug("Gathering block.")
+                block = self.getBlock(block_hash)
+            except Exception as ex:
+                exception_name = type(ex).__name__
+                self.logger.exception("Found: " + str(ex))
+                if 'BlockstreamClientTimeout' in exception_name:
+                    #In the event of a Timeout, BlockstreamClientTimeout will be raised.
+                    self.logger.info("Encoutered a BlockstreamClientTimeout Exception on try {} out of {}.".format(attempt+1, max_tries))
+                    self.logger.info("Trying again after 10 seconds.")
+                    self.logger.info("Waiting...")
+                    time.sleep(10)
+                elif 'BlockstreamApiError' in exception_name:
+                    # In the event of an API error (e.g. Invalid resource, Bad Request, etc), Bloxplorer will raise BlockstreamApiError.
+                    self.logger.info("Encoutered a BlockstreamApiError Exception on try {} out of {}.".format(attempt+1, max_tries))
+                    self.logger.info("Trying again after 10 seconds.")
+                    self.logger.info("Waiting...")
+                    time.sleep(10)    
+                else: # BlockstreamClientError
+                    # For anything else, Bloxplorer will raise a BlockstreamClientError.
+                    self.logger.error("Encoutered a generic BlockstreamClientError Exception on try {} out of {}.".format(attempt+1, max_tries))
+                    self.logger.error("Exception message: {}".format(str(ex)))
+                    time.sleep(1)
+            else:
+                self.logger.debug("Block gathered.")
+                break
+        
+        if not block:
+            self.logger.info("Couldn't retrieve the block.")
+            return {}
+        
+        self.logger.debug("Processing block information.")
         block_height = self.__extractBlockHeight(block)
         coinbase_tx = self.getCoinbaseTransaction(block_hash)
         coinbase_message = Utils.hexStringToAscii(coinbase_tx['vin'][0]['scriptsig'])

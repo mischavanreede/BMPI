@@ -218,6 +218,8 @@ class ScraperController:
         for scraper in self.scrapers:
             block = scraper.getBlockInformation(block_hash)
             block_info_list.append(block)
+        
+        
         self.logger.debug("Blocks succesfully gathered.")
         # Compare blocks
         if self.all_equal(block_info_list): # Check if blocks are equal
@@ -230,8 +232,7 @@ class ScraperController:
                     "block": block_to_return}
         
         else: # Blocks are not equal
-            self.logger.warning("Conflict found in the gatherd data. (Conflicting API information).")
-            self.logger.debug("The obtained block data is not equal. Please inspect the logs.")
+            self.logger.warning("The obtained block data is not equal (Conflicting API information).")
             self.logger.debug("Conflict found in block: {}".format(block_hash))
 
             prev_hashes = []
@@ -255,25 +256,3 @@ class ScraperController:
                         "prev_hash_equal": False,
                         "prev_hash": None,
                         "conflict_entry": conflict_entry}
-
-    
-    # def getLastBlocks(self, n=1):
-    #     previous_hash = self.getLatestBlockHash()
-    #     latest_height = self.getLatestBlockHeight()
-    #     blocks = []
-    #     #times = []
-    #     self.logger.info("Gathering the last n={} blocks, starting from height={} and block hash: {}".format(n, latest_height, previous_hash))
-    #     for i in range(n):
-    #         self.logger.debug("")
-    #         self.logger.info("Gathering block at height: {}".format(latest_height-i))
-    #         self.logger.debug("Gathering block at with hash: {}".format(previous_hash))
-    #         tic = time.perf_counter()
-    #         block_info = self.getBlockInfoListFromScrapers(previous_hash)
-    #         toc = time.perf_counter()
-    #         #times.append(round(toc - tic, 4))
-    #         blocks.append(block_info)
-    #         previous_hash = block_info['prev_block_hash']
-
-        
-        #print("Average time per block request: {}".format(sum(times)/len(times)))
-             

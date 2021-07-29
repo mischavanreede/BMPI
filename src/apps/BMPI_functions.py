@@ -8,6 +8,7 @@
 
 import json
 import time
+import sys
 import click
 
 from .elastic import ElasticsearchController
@@ -62,6 +63,7 @@ class BMPIFunctions():
         block_hash = latest_block_hash
         
         block_store_interval = 10
+        forced_stopped = False
         
         while block_height >= 0:
             succesfully_gathered_block = False
@@ -69,20 +71,31 @@ class BMPIFunctions():
             conflict_encountered = False
             
             # Store blocks when %block_store_interval blocks are gathered.
-            if block_height % block_store_interval == 0:
+            if (block_height % block_store_interval == 0) or forced_stopped:
                 self.logger.info("Lenght of block list: {}".format(len(self.block_list)))
                 self.logger.info("Lenght of API conflicts: {}".format(len(self.API_conflicts)))
                 self.logger.info("Lenght of skipped block list: {}".format(len(self.skipped_blocks_list)))
                 #self.performInterimBlockStorage()
           
+            if forced_stopped:
+                sys.exit()
+          
             try: # Gathering new block
                 self.logger.info("Gathering block at height: {}".format(block_height))
                 result = self.scraper_controller.getBlockInfoFromScrapers(block_hash)
                 
+            except KeyboardInterrupt:
+                forced_stopped = True
+                self.logger.info("Gracefully stopping application.")
+                continue
+            
             except Exception as e:
                 # Catch timeout exc and other exceptions
+                self.logger.warning("Exception encountered.")
                 exception_encoutered = True
                 exception_type = type(e).__name__
+                self.logger.info("Type of exception: {}".format(exception_type))
+                self.logger.debug(str(e))
                 skipped_blocks_entry = {
                         "block_height": block_height,
                         "block_hash": block_hash,
@@ -99,20 +112,20 @@ class BMPIFunctions():
             
             if succesfully_gathered_block:
                 # Set variables (block_hash and block_height) for next iteration of outer while
-                self.logger.debug("Block succesfully gathered.")
                 block = result['block']
                 self.block_list.append(block)
                 block_hash = block['prev_block_hash']
                 block_height -= 1
+                self.logger.debug("Block succesfully gathered.\n")
                 continue # continue with next iteration
             
             if exception_encoutered:
-                self.logger.warning("Exception encountered.")
                 block_hash, block_height = self.findValidPrecedingHashAndHeight(block_height)
+                self.logger.debug("Block hash found for next iteration.\n")
                 continue 
                 
             if conflict_encountered:
-                self.logger.warning("Conflict encountered.")
+                self.logger.info("Conflict encountered.")
                 # Set block height to conflict entry
                 result['conflict_entry']['block_height'] = block_height
                 # Add conflict block to list
@@ -129,9 +142,11 @@ class BMPIFunctions():
                 if result['prev_hash_equal']:
                     block_hash = result['prev_hash']
                     block_height -= 1
+                    self.logger.debug("Block hash found for next iteration.\n")
                     continue # continue with next iteration
                 else:     
                     block_hash, block_height = self.findValidPrecedingHashAndHeight(block_height)
+                    self.logger.debug("Block hash found for next iteration.\n")
                     continue # 4.
             self.logger.error("Code should not reach this part.")
         # End of outer while    

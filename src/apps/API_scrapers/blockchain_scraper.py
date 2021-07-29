@@ -69,6 +69,8 @@ Available API responses:
                                     - https://blockchain.info/blocks/$pool_name?format=json      
 """
 
+import time
+
 from .generic_rest_requests import RestRequests
 from ..utils import Utils
 
@@ -249,7 +251,27 @@ class BlockchainScraper(RestRequests):
 
         """
         self.logger.debug("Querying Blockchain.com API to obtain block information.")
-        block = self.getBlock(block_hash)
+        max_tries = 3
+        
+        for attempt in range(max_tries):
+            try:
+                self.logger.debug("Gathering block.")
+                block = self.getBlock(block_hash)
+            except Exception as e:
+                # For anything else, Bloxplorer will raise a BlockstreamClientError.
+                self.logger.exception("Encoutered a generic BlockstreamClientError Exception on try {} out of {}.".format(attempt+1, max_tries))
+                self.logger.info("Exception message: {}".format(str(e)))
+                self.logger.info("Trying again after 5 seconds.")
+                time.sleep(5)
+            else:
+                self.logger.debug("Block gathered.")
+                break
+        
+        if not block:
+            self.logger.info("Couldn't retrieve the block.")
+            return {}
+        
+        self.logger.debug("Processing block information.")
         block_height = self.__extractBlockHeight(block)
         coinbase_tx = self.__extractCoinbaseTransaction(block)
         coinbase_message = Utils.removeNonAscii(self.__getCoinbaseScriptMessage(block))

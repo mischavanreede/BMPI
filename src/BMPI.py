@@ -62,8 +62,6 @@ def initialize_logger(config): #For logging, look at: https://docs.python.org/3/
             - Perhaps implement log file 'rotation'
             - Put and obtain settings from loggin.conf
             https://stackoverflow.com/questions/15727420/using-logging-in-multiple-modules
-        
-    
     """
     
     # set up logging to file - see previous section for more details
@@ -150,7 +148,6 @@ def run(self):
 
 
 if __name__ == '__main__':
-    
     config = initialize_config()
     logger = initialize_logger(config)
     
