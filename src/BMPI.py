@@ -38,13 +38,13 @@ from apps.BMPI_functions import BMPIFunctions
 
    
 
-@staticmethod
+
 def initialize_config():
     config = ConfigParser()
     config.read("config/settings.conf")
     return config
 
-def initialize_logger(self): #For logging, look at: https://docs.python.org/3/howto/logging.html  and  https://docs.python.org/3/howto/logging.html#logging-advanced-tutorial
+def initialize_logger(config): #For logging, look at: https://docs.python.org/3/howto/logging.html  and  https://docs.python.org/3/howto/logging.html#logging-advanced-tutorial
     """
     A method that initializes logging
     # https://docs.python.org/3/howto/logging-cookbook.html#logging-to-multiple-destinations
@@ -77,7 +77,6 @@ def initialize_logger(self): #For logging, look at: https://docs.python.org/3/ho
     bmpi_logger.setLevel(logging.DEBUG)
     
     # Set log format
-    #formatter = logging.Formatter('%(asctime)s | %(name)s | %(module)4s-%(lineno)4s | %(levelname)-8s | %(message)s')
     formatter = logging.Formatter('%(asctime)s | %(name)s | %(levelname)-8s | (%(filename)s:%(lineno)s) -- %(message)s')
     formatter.datefmt = '%Y-%m-%d %H:%M:%S'
     
@@ -86,7 +85,7 @@ def initialize_logger(self): #For logging, look at: https://docs.python.org/3/ho
         bmpi_logger.handlers.clear()
     
     # Create file handler, Obtains log file location from config (settings.conf)
-    file_path = self.config.get('Logging', 'LOG_FILE_PATH')
+    file_path = config.get('Logging', 'LOG_FILE_PATH')
     file_handler = logging.FileHandler(filename=file_path, mode='a',encoding='utf-8')
     file_handler.filemode = 'w'
     file_handler.setFormatter(formatter)
@@ -106,19 +105,20 @@ def initialize_logger(self): #For logging, look at: https://docs.python.org/3/ho
     return bmpi_logger
 
 
-@click.group()
-def bmpi(self):
+# @click.group()
+def bmpi(config, logger):
     """
     This will be executed on every application call.
 
     """
-    pass
+    BMPI = BMPIFunctions(config=config, logger=logger)
+    BMPI.gatherAndStoreBlocksFromScrapers()
 
 
 #https://stackoverflow.com/questions/67297248/noninteractive-confirmation-of-eager-options-in-the-python-click-library
-@bmpi.command()
-@click.option()
-@click.confirmation_option()
+# @bmpi.command()
+# @click.option()
+# @click.confirmation_option()
 def deleteStoredData():
     '''
     
@@ -139,19 +139,9 @@ def gatherApiBlockData():
 
 
 
-
-
-
-
-
-
-
-
-
-
 def run(self):
-
-    BMPI = BMPIFunctions(config=self.config, logger=self.logger)
+    pass
+    #BMPI = BMPIFunctions(config=self.config, logger=self.logger)
     #BMPI.runScrapers()
     #BMPI.run()
     
@@ -162,6 +152,6 @@ def run(self):
 if __name__ == '__main__':
     
     config = initialize_config()
-    logger = initialize_logger()
+    logger = initialize_logger(config)
     
-    bmpi()
+    bmpi(config, logger)

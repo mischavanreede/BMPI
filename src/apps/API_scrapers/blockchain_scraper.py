@@ -248,7 +248,7 @@ class BlockchainScraper(RestRequests):
         block_information : dict.
 
         """
-        self.logger.debug("Querying Blockchain.com API to obtain information about block: {}".format(block_hash))
+        self.logger.debug("Querying Blockchain.com API to obtain block information.")
         block = self.getBlock(block_hash)
         block_height = self.__extractBlockHeight(block)
         coinbase_tx = self.__extractCoinbaseTransaction(block)
@@ -258,7 +258,7 @@ class BlockchainScraper(RestRequests):
         block_information = {
             "block_hash": block_hash,
             "prev_block_hash": self.__extractPrevBlockHash(block),
-            "block_height": self.__extractBlockHeight(block),
+            "block_height": block_height,
             "timestamp" : self.__extractBlockTimestamp(block),
             "coinbase_tx_hash": coinbase_tx['hash'],
             "coinbase_message": coinbase_message,
@@ -267,7 +267,7 @@ class BlockchainScraper(RestRequests):
             "fee_block_reward": block['fee'], 
             "total_block_reward": coinbase_tx['out'][0]['value']
             }
-        self.logger.debug("Information succesfully obtained from the Blockchain.info API for block at height {} with hash: {}".format(block_height, block_hash))
+        self.logger.debug("Block information succesfully obtained from the Blockchain.info API.")
         return block_information
 
 

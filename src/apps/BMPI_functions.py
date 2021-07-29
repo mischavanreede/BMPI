@@ -24,7 +24,12 @@ class BMPIFunctions():
     def __init__(self, config, logger):
         self.logger = logger
         self.config = config
-
+        
+        self.block_list = []
+        self.API_conflicts = []
+        self.skipped_blocks_list = []
+        
+        # Init modules
         self.__initialize_modules()
 
     def __initialize_modules(self):
@@ -36,9 +41,6 @@ class BMPIFunctions():
 
         
 
-
-    
-    
     
     def removeStoredElasticsearchData(self):
         pass
@@ -48,94 +50,157 @@ class BMPIFunctions():
         pass
     
     def gatherAndStoreBlocksFromScrapers(self):
-        
+        '''
+        This method is used to gather relevant block data from the implemented
+        blockchain web service API scrapers. It traverses the entire blockchain
+        starting at the latest block_height.
+
+        '''
         latest_block_hash, latest_height = self.scraper_controller.getLatestBlockHashAndHeight()
         
         block_height = latest_height
-        previous_block_hash = latest_block_hash
+        block_hash = latest_block_hash
         
-        block_list = []
-        API_conflicts = []
+        block_store_interval = 10
         
         while block_height >= 0:
-            # on intervals where 1000 blocks have been gathered, 
-                # store block_list and API_conflicts in Elasticsearch
-            if block_height % 1000 == 0:
-                # Store succesfully gathered blocks
-                if self.es_controller.bulk_store(records=block_list, index="blocks_from_scrapers"):
-                    # bulk store succesfull, emptying list
-                    block_list = []
+            succesfully_gathered_block = False
+            exception_encoutered = False
+            conflict_encountered = False
+            
+            # Store blocks when %block_store_interval blocks are gathered.
+            if block_height % block_store_interval == 0:
+                self.logger.info("Lenght of block list: {}".format(len(self.block_list)))
+                self.logger.info("Lenght of API conflicts: {}".format(len(self.API_conflicts)))
+                self.logger.info("Lenght of skipped block list: {}".format(len(self.skipped_blocks_list)))
+                #self.performInterimBlockStorage()
+          
+            try: # Gathering new block
+                self.logger.info("Gathering block at height: {}".format(block_height))
+                result = self.scraper_controller.getBlockInfoFromScrapers(block_hash)
                 
-                # Store API data conflicts
-                if self.es_controller.bulk_store(records=API_conflicts, index="CONFLICT_API_block_data_conflicts"):
-                    #bulk store succesfull, emptying list
-                    API_conflicts = []
-           
-            try:
-                result = self.scraper_controller.getBlockInfoFromScrapers(previous_block_hash)
-                
-                if result['status'] == "success":
-                    block = result['block']
-                    # Add block to list
-                    block_list.append(block)
-                    # Decrease block_height by 1 and set previous hash
-                    previous_block_hash = block['prev_block_hash']
-                    block_height -= 1
-                
-                elif result['status'] == "conflict":
-                    result['conflict_entry']['block_height'] = block_height
-                    # Add conflict block to list
-                    API_conflicts.append(result['conflict_entry'])
-                    # Add skipped block to es
-                    es_entry = {
+            except Exception as e:
+                # Catch timeout exc and other exceptions
+                exception_encoutered = True
+                exception_type = type(e).__name__
+                skipped_blocks_entry = {
                         "block_height": block_height,
-                        "block_hash": previous_block_hash
+                        "block_hash": block_hash,
+                        "reason_for_skipping": "Exception encountered: {}".format(exception_type)
                         }
-                    self.es_controller.store(record=es_entry, index="skipped_blocks")
-                    
-                    # Set variables for next iteration of outer while
-                    if result['prev_hash_equal']:
-                        previous_block_hash = result['prev_hash']
-                        # manually decrease block_height 
-                        block_height -= 1
-     
-                    else:
-                        # Keep decreasing until a matching previous hash is found
-                        while True:
-                            # if prev_hash is not the same, get that the hash at that height from the scrapers
-                            previous_height = block_height - 1
-                            previous_hash = self.scraper_controller.getBlockHashAtHeight(previous_height)
-                            #TODO: Maybe add reason for skipping in the skipped_blocks index.
-                            if previous_hash is None:
-                                es_entry = {
-                                    "block_height": previous_height,
-                                    "block_hash": None
-                                    }
-                                self.es_controller.store(record=es_entry, index="skipped_blocks")
-                            
-                            if previous_hash is not None:
-                                # set height and prev_hash for following itteration of outer while
-                                block_height = previous_height
-                                previous_block_hash = previous_hash
-                                break
-  
-            except:
-                # catch timeout errors and other exceptions
-                continue
+                self.skipped_blocks_list.append(skipped_blocks_entry)
             
-            else: 
-                # No exception occurred
-                pass
-            
-            finally:
-                pass
-                #code that is run after each try
-        
+            else: # No exception found and some result is returned.
+                succesfully_gathered_block = (result['status'] == "success")
+                conflict_encountered = (result['status'] == "conflict")
                 
-        
-        
-
+            # finally:
+            #     #code that is run after each try
+            
+            if succesfully_gathered_block:
+                # Set variables (block_hash and block_height) for next iteration of outer while
+                self.logger.debug("Block succesfully gathered.")
+                block = result['block']
+                self.block_list.append(block)
+                block_hash = block['prev_block_hash']
+                block_height -= 1
+                continue # continue with next iteration
+            
+            if exception_encoutered:
+                self.logger.warning("Exception encountered.")
+                block_hash, block_height = self.findValidPrecedingHashAndHeight(block_height)
+                continue 
+                
+            if conflict_encountered:
+                self.logger.warning("Conflict encountered.")
+                # Set block height to conflict entry
+                result['conflict_entry']['block_height'] = block_height
+                # Add conflict block to list
+                self.API_conflicts.append(result['conflict_entry'])
+                # Add skipped block
+                skipped_blocks_entry = {
+                    "block_height": block_height,
+                    "block_hash": block_hash,
+                    "reason_for_skipping": "Conflicting API information."
+                    }
+                self.skipped_blocks_list.append(skipped_blocks_entry)
+               
+                # Set variables (block_hash and block_height) for next iteration of outer while
+                if result['prev_hash_equal']:
+                    block_hash = result['prev_hash']
+                    block_height -= 1
+                    continue # continue with next iteration
+                else:     
+                    block_hash, block_height = self.findValidPrecedingHashAndHeight(block_height)
+                    continue # 4.
+            self.logger.error("Code should not reach this part.")
+        # End of outer while    
+        self.logger.info("END of loop: Crawling API's for block data complete.")    
     
+
+    def performInterimBlockStorage(self):
+        # Store succesfully gathered blocks
+        if self.es_controller.bulk_store(records=self.block_list, index="blocks_from_scrapers"):
+            self.logger.info("Succesfully stored last {} blocks".format(len(self.block_list)))
+            self.block_list.clear()
+        else:
+            self.logger.error("Failed to store blocks in es. Please check the logs.")
+        # Store skipped blocks
+        if len(self.skipped_blocks_list) > 0:
+            if self.es_controller.bulk_store(records=self.skipped_blocks_list, index="skipped_blocks"):
+                self.logger.info("Succesfully stored last {} API data conflicts".format(len(self.skipped_blocks_list)))
+                self.skipped_blocks_list.clear()
+            else:
+                self.logger.error("Failed to store skipped blocks heights in es. Please check the logs.")
+        # Store API data conflicts
+        if len(self.API_conflicts) > 0:
+            if self.es_controller.bulk_store(records=self.API_conflicts, index="CONFLICT_API_block_data_conflicts"):
+                self.logger.info("Succesfully stored last {} API data conflicts".format(len(self.API_conflicts)))
+                self.API_conflicts.clear()
+            else:
+                self.logger.error("Failed to store skipped blocks heights in es. Please check the logs.")           
+
+    def findValidPrecedingHashAndHeight(self, block_height):
+        # 1. Keep decreasing block_height until a matching previous hash is found
+        # 2. set block_hash to this previous hash
+        # 3. set height to this previous height
+        # 4. go to next iteration             
+        while True:
+            # 1.
+            previous_height = block_height - 1
+            self.logger.debug("Trying to gather hash at block_height: {}".format(previous_height))
+            try:
+                previous_hash = self.scraper_controller.getBlockHashAtHeight(previous_height)
+                
+            except Exception as e: 
+                exception_type = type(e).__name__
+                self.logger.exception("Exception encountered: {}".format(exception_type))
+                self.logger.warning("This exception was found while retrieving the block_hash at height: {}".format(previous_height))
+                self.logger.warning("Waiting 30 seconds before trying again.")
+                time.sleep(30)
+                previous_height += 1
+                continue # Stay in while true loop
+
+            if previous_hash is None:
+                self.logger.debug("Couldn't find hash at this height.")
+                self.logger.debug("Saving this height in skipped_blocks list.")
+                skipped_blocks_entry = {
+                    "block_height": previous_height,
+                    "block_hash": None,
+                    "reason_for_skipping": "API's return different values for prev_hash"
+                    }
+                self.skipped_blocks_list.append(skipped_blocks_entry)
+            
+            if previous_hash is not None:
+                # 2. + 3.
+                self.logger.debug("Found a hash at this height")
+                block_height = previous_height
+                block_hash = previous_hash
+                break # break out while true loop
+        return block_hash, block_height
+    
+
+
     def attributePoolNames(self):
         '''
         add click parameter to choose which data to use(API scaper data or node data)
@@ -143,8 +208,89 @@ class BMPIFunctions():
         store in seperate indices
         '''
         pass
+        # def attributePoolNameToBlock(self, block):
+        #     pool_data_updated = False
+        #     explicitly_find_tag_match = True
     
+        #     payout_address = block['pool_address']
+        #     coinbase_message = block['coinbase_message']
+            
+            
+            
+        #     # TODO: combine various pool_data sources
+        #     # TODO: implement check for multiple output addresses
+        #     # TODO: add logger info
+            
+        #     if payout_address in self.pool_data_json['payout_addresses']:
+        #         address_match_pool_name = self.pool_data_json['payout_addresses'][payout_address]['name']
+        #         self.logger.debug("Found a matching payout address (match={})".format(address_match_pool_name))
+        #         self.logger.debug("Payout address = {}".format(payout_address))
+                            
+        #         # Check if the miner uses it's pool tag
+        #         if explicitly_find_tag_match:
+        #             for coinbase_tag, pool_info in self.pool_data_json['coinbase_tags'].items():
+        #                 if coinbase_tag in coinbase_message and address_match_pool_name == pool_info['name']:
+        #                     # pool_name is the same for address and tag match "everything is ok"
+        #                     self.logger.debug("Block attributed to: {}".format(address_match_pool_name))
+        #                     block['pool_name'] = address_match_pool_name
+        #                     return
+                        
+        #                 elif coinbase_tag in coinbase_message and address_match_pool_name != pool_info['name']:
+        #                     self.conflict_encoutered = True
+        #                     tag_match_pool_name = pool_info['name']
+        #                     self.logger.info("Naming conflict occured in attributing pool name to block: {}".format(block['block_hash']))
+        #                     self.logger.debug("Coinbase message = {}".format(block['coinbase_message']))
+        #                     self.logger.info("Found conflicting matches for pool_names. Please inspect the logs")
+        #                     self.logger.debug("Found matches; address_match_pool_name={} , tag_match_pool_name={}".format(address_match_pool_name, tag_match_pool_name))
+        #                     self.logger.debug("Saving conflicts to (conflicting_pool_name_attribution) entry in conflict JSON")
+        #                     self.logger.debug("Attributing payout_address match as this match takes precedence.")
+            
+                            
+        #                     conflict_entry = self.__constructConflictingPoolNameAttributionDataEntry(block, tag_match_pool_name, address_match_pool_name)
+        #                     self.__addConflictingData(conflict_type="conflicting_pool_name_attribution", conflict_entry=conflict_entry)
+        #                     self.logger.debug("Block attributed to: {}".format(address_match_pool_name))
+        #                     block['pool_name'] = address_match_pool_name
+        #                     return
     
+        #             self.logger.debug("Found a matching payout address (match={}), but no matching coinbase tag.".format(address_match_pool_name))
+        #             self.logger.debug("Coinbase message = {}".format(block['coinbase_message']))
+        #             self.logger.debug("Saving block with message for manual inspection")
+        #             #TODO: safe blocks in seperate json file
+        #             self.logger.debug("Block attributed to: {}".format(address_match_pool_name))
+        #             block['pool_name'] = address_match_pool_name
+        #             return
+          
+        #     # No quick address match found, 
+        #     # trying to find matching coinbase tag for the coinbase message.
+        #     # If match is found update pool_data JSON's with payout address.
+        #     else:
+        #         tag_match = False
+        #         for coinbase_tag, pool_info in self.pool_data_json['coinbase_tags'].items():
+                    
+        #             # Keep track of multiple tag matches
+        #             match_list = []
+                    
+        #             if coinbase_tag in coinbase_message:
+        #                 tag_match_pool_name = pool_info['name']
+        #                 match_list.append(tag_match_pool_name)
+                        
+        #         if tag_match:
+        #             if self.all_equal(match_list):
+        #                 tag_match_pool_name = match_list[0]
+        #                 block['pool_name'] = tag_match_pool_name
+        #                 self.__updatePoolDataJSON(tag_match_pool_name, block['pool_address'])
+        #                 return
+        #             else:
+        #                 self.logger.warning("Naming conflict! Multiple matching tags found in coinbase message.")
+        #                 self.logger.debug("Unsure to which pool to attribute this block. Attributing to 'Unknown'.")
+        #                 self.logger.debug("Matches found: {}".format(set(match_list)))
+        #                 self.conflict_encoutered = True
+        #                 conflict_entry = self.__constructMultipleCoinbaseTagMatchesDataEntry(block, match_list)
+        #                 self.__addConflictingData(conflict_type='multiple_coinbase_tag_matches', conflict_entry=conflict_entry)
+        #     # No matches found, setting pool_name to unknown.
+        #     self.logger.debug("Block attributed to: Unknown")
+        #     block['pool_name'] = "Unknown"
+        #     return        
     
     
     def runScrapers(self):

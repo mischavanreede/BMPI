@@ -116,7 +116,7 @@ class BlockstreamScraper(RestRequests):
         -------
         block_information : dict.
         """
-        self.logger.debug("Querying Blockstream.info API to obtain information about block: {}".format(block_hash))
+        self.logger.debug("Querying Blockstream.info API to obtain block information.")
         block = self.getBlock(block_hash)
         block_height = self.__extractBlockHeight(block)
         coinbase_tx = self.getCoinbaseTransaction(block_hash)
@@ -126,7 +126,7 @@ class BlockstreamScraper(RestRequests):
         block_information = {
             "block_hash": block_hash,
             "prev_block_hash": self.__extractPrevBlockHash(block),
-            "block_height": self.__extractBlockHeight(block),
+            "block_height": block_height,
             "timestamp" : self.__extractBlockTimestamp(block),
             "coinbase_tx_hash": coinbase_tx['txid'],
             "coinbase_message": coinbase_message,
@@ -135,7 +135,7 @@ class BlockstreamScraper(RestRequests):
             "fee_block_reward": coinbase_tx['vout'][0]['value'] - Utils.getBlockReward(self.__extractBlockHeight(block)), 
             "total_block_reward": coinbase_tx['vout'][0]['value']
             }
-        self.logger.debug("Information succesfully obtained from the Blockstream.info API for block at height {} with hash: {}".format(block_height, block_hash))
+        self.logger.debug("Block information succesfully obtained from the Blockstream.info API.")
         return block_information
         
         

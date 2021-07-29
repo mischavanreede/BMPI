@@ -196,18 +196,6 @@ class ElasticsearchController():
         """
         Stores many records in one go.
 
-        Parameters
-        ----------
-        records : TYPE
-            DESCRIPTION.
-        index_name : TYPE
-            DESCRIPTION.
-
-
-        Returns
-        -------
-        None.
-
         """
         assert(self.__index_exists(index_name))
         
@@ -304,7 +292,8 @@ class ElasticsearchIndexes():
                 "properties": {
                      "block_height": {"type": "integer"},
                      "block_hash": {"type": "text",
-                                    "null_value": "NOT_FOUND"}
+                                    "null_value": "NOT_FOUND"},
+                     "reason_for_skipping": {"type": "text"}
                     }                
                 }
             },

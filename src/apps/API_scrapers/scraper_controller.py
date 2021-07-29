@@ -47,10 +47,9 @@ class ScraperController:
         self.scrapers = [self.BlockchainScraper, self.BlockstreamScraper]
         
         # Load pool data in local variable
-        with open(file="../pools/pool_data.json", mode='r', encoding='utf-8') as f:
-            self.pool_data_json = json.load(f)
+        # with open(file="../pools/pool_data.json", mode='r', encoding='utf-8') as f:
+        #     self.pool_data_json = json.load(f)
          
-        self.conflict_encoutered = False
         self.block_conflicts = {
             "conflicting_pool_name_attribution":[
                     {
@@ -174,15 +173,15 @@ class ScraperController:
     def getBlockHashAtHeight(self, height):
         self.logger.debug("Obtaining hash at height [{}] from both scrapers".format(height))
         # Hash from Blockstream.info scraper, returns single value
-        blockstream_hash = self.blockstream_scraper.getHashAtHeight(height)
+        blockstream_hash = self.BlockstreamScraper.getHashAtHeight(height)
         self.logger.debug("Blockstream scraper returned: {}".format(blockstream_hash))
         
         # Hash from Blockchain.com scraper, returns list of hashes
-        blockchain_hash = self.blockchain_scraper.getHashAtHeight(height)
+        blockchain_hash = self.BlockchainScraper.getHashAtHeight(height)
         self.logger.debug("Blockchain.com scraper returned: {}".format(blockchain_hash))
         
         if len(blockchain_hash) > 1:
-            self.logger.info("Blockchain.com returned multiple hashes at height: {}".format(height))
+            self.logger.debug("Blockchain.com returned multiple hashes at height: {}".format(height))
         
         if blockstream_hash in blockchain_hash:
             self.logger.debug("Found a matching hash.")
@@ -207,22 +206,23 @@ class ScraperController:
                 self.logger.debug("Obtained block heights are all equal")
                 return latest_hash_list[0], latest_height_list[0]
 
-        self.logger.warning("Obtained block heights do not match. Please check the logs")
-        self.logger.warning("Gathered the following information: {}".format(zip(self.scrapers, latest_hash_list)))
+        self.logger.error("Obtained block heights do not match. Please check the logs.")
+        self.logger.error("Gathered the following information: {}".format(zip(self.scrapers, latest_hash_list)))
         raise Exception("Mismatch in latest hash and or latest height of block.")
 
     
     def getBlockInfoFromScrapers(self, block_hash):
         block_info_list = []
+        self.logger.debug("Gathering block with hash: {}".format(block_hash))
         #Get block from scrapers
         for scraper in self.scrapers:
             block = scraper.getBlockInformation(block_hash)
             block_info_list.append(block)
-        
+        self.logger.debug("Blocks succesfully gathered.")
         # Compare blocks
         if self.all_equal(block_info_list): # Check if blocks are equal
             # All blocks are equal, so returning the first one
-            self.logger.debug("Obtained blocks with hash [{}] are equal.".format(block_hash))
+            self.logger.debug("Obtained blocks are equal.")
             block_to_return = block_info_list[0]
             #self.logger.debug("Attributing mining pool to block: {}".format(block_hash))
             #self.attributePoolNameToBlock(block_to_return)
@@ -230,9 +230,9 @@ class ScraperController:
                     "block": block_to_return}
         
         else: # Blocks are not equal
-            self.logger.warning("Conflict in data obtained from scrapers (Conflicting API information). The obtained block data is not equal. Please inspect the logs.")
-            self.logger.warning("Conflict found in block: {}".format(block_hash))
-            self.conflict_encoutered = True
+            self.logger.warning("Conflict found in the gatherd data. (Conflicting API information).")
+            self.logger.debug("The obtained block data is not equal. Please inspect the logs.")
+            self.logger.debug("Conflict found in block: {}".format(block_hash))
 
             prev_hashes = []
             for scraper, block in zip(self.scrapers, block_info_list):
@@ -250,9 +250,10 @@ class ScraperController:
                         "prev_hash": prev_hashes[0],
                         "conflict_entry": conflict_entry}
             else:
-                self.logger.warning("Couldn't determine prev_hash. Returning conflict data.")
+                self.logger.info("Couldn't determine prev_hash. Returning conflict data.")
                 return {"status": "conflict",
                         "prev_hash_equal": False,
+                        "prev_hash": None,
                         "conflict_entry": conflict_entry}
 
     
@@ -276,87 +277,3 @@ class ScraperController:
         
         #print("Average time per block request: {}".format(sum(times)/len(times)))
              
-    
-    def attributePoolNameToBlock(self, block):
-        pool_data_updated = False
-        explicitly_find_tag_match = True
-
-        payout_address = block['pool_address']
-        coinbase_message = block['coinbase_message']
-        
-        
-        
-        # TODO: combine various pool_data sources
-        # TODO: implement check for multiple output addresses
-        # TODO: add logger info
-        
-        if payout_address in self.pool_data_json['payout_addresses']:
-            address_match_pool_name = self.pool_data_json['payout_addresses'][payout_address]['name']
-            self.logger.debug("Found a matching payout address (match={})".format(address_match_pool_name))
-            self.logger.debug("Payout address = {}".format(payout_address))
-                        
-            # Check if the miner uses it's pool tag
-            if explicitly_find_tag_match:
-                for coinbase_tag, pool_info in self.pool_data_json['coinbase_tags'].items():
-                    if coinbase_tag in coinbase_message and address_match_pool_name == pool_info['name']:
-                        # pool_name is the same for address and tag match "everything is ok"
-                        self.logger.debug("Block attributed to: {}".format(address_match_pool_name))
-                        block['pool_name'] = address_match_pool_name
-                        return
-                    
-                    elif coinbase_tag in coinbase_message and address_match_pool_name != pool_info['name']:
-                        self.conflict_encoutered = True
-                        tag_match_pool_name = pool_info['name']
-                        self.logger.info("Naming conflict occured in attributing pool name to block: {}".format(block['block_hash']))
-                        self.logger.debug("Coinbase message = {}".format(block['coinbase_message']))
-                        self.logger.info("Found conflicting matches for pool_names. Please inspect the logs")
-                        self.logger.debug("Found matches; address_match_pool_name={} , tag_match_pool_name={}".format(address_match_pool_name, tag_match_pool_name))
-                        self.logger.debug("Saving conflicts to (conflicting_pool_name_attribution) entry in conflict JSON")
-                        self.logger.debug("Attributing payout_address match as this match takes precedence.")
-        
-                        
-                        conflict_entry = self.__constructConflictingPoolNameAttributionDataEntry(block, tag_match_pool_name, address_match_pool_name)
-                        self.__addConflictingData(conflict_type="conflicting_pool_name_attribution", conflict_entry=conflict_entry)
-                        self.logger.debug("Block attributed to: {}".format(address_match_pool_name))
-                        block['pool_name'] = address_match_pool_name
-                        return
-
-                self.logger.debug("Found a matching payout address (match={}), but no matching coinbase tag.".format(address_match_pool_name))
-                self.logger.debug("Coinbase message = {}".format(block['coinbase_message']))
-                self.logger.debug("Saving block with message for manual inspection")
-                #TODO: safe blocks in seperate json file
-                self.logger.debug("Block attributed to: {}".format(address_match_pool_name))
-                block['pool_name'] = address_match_pool_name
-                return
-      
-        # No quick address match found, 
-        # trying to find matching coinbase tag for the coinbase message.
-        # If match is found update pool_data JSON's with payout address.
-        else:
-            tag_match = False
-            for coinbase_tag, pool_info in self.pool_data_json['coinbase_tags'].items():
-                
-                # Keep track of multiple tag matches
-                match_list = []
-                
-                if coinbase_tag in coinbase_message:
-                    tag_match_pool_name = pool_info['name']
-                    match_list.append(tag_match_pool_name)
-                    
-            if tag_match:
-                if self.all_equal(match_list):
-                    tag_match_pool_name = match_list[0]
-                    block['pool_name'] = tag_match_pool_name
-                    self.__updatePoolDataJSON(tag_match_pool_name, block['pool_address'])
-                    return
-                else:
-                    self.logger.warning("Naming conflict! Multiple matching tags found in coinbase message.")
-                    self.logger.debug("Unsure to which pool to attribute this block. Attributing to 'Unknown'.")
-                    self.logger.debug("Matches found: {}".format(set(match_list)))
-                    self.conflict_encoutered = True
-                    conflict_entry = self.__constructMultipleCoinbaseTagMatchesDataEntry(block, match_list)
-                    self.__addConflictingData(conflict_type='multiple_coinbase_tag_matches', conflict_entry=conflict_entry)
-        # No matches found, setting pool_name to unknown.
-        self.logger.debug("Block attributed to: Unknown")
-        block['pool_name'] = "Unknown"
-        return        
