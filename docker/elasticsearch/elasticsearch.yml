@@ -55,14 +55,18 @@ bootstrap.memory_lock: true
 # By default Elasticsearch is only accessible on localhost. Set a different
 # address here to expose this node on the network:
 #
-network.host: 127.0.0.1
+network.host: 0.0.0.0
 #network.bind_host:
 #nework.publish_host: 
 #
 # By default Elasticsearch listens for HTTP traffic on the first free port it
 # finds starting at 9200. Set a specific HTTP port here:
 #
-http.port: 9200-9300
+http.port: 9200
+
+http.cors.enabled: true
+
+#http.cors.allow-origin:*
 #
 # For more information, consult the network module documentation.
 # https://www.elastic.co/guide/en/elasticsearch/reference/current/modules-network.html
