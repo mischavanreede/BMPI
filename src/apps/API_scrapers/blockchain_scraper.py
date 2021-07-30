@@ -126,14 +126,6 @@ class BlockchainScraper(RestRequests):
         """
         Get a block, using a block hash as parameter, from the Blockchain.com API
         
-        Parameters
-        ----------
-        block_hash : string
-
-        Returns
-        -------
-        result : dict            
-
         """
         assert isinstance(block_hash, str) 
         single_block_url = self.base_url + "rawblock/" + block_hash
@@ -156,15 +148,7 @@ class BlockchainScraper(RestRequests):
     def getBlocksAtHeight(self, block_height):
         """
         Returns a list of Blocks at the specified height.
-        
-        Parameters
-        ----------
-        block_height : int
-            height in the bitcoin blockchain.
-
-        Returns
-        -------
-        result : list            
+                    
         """
         assert isinstance(block_height, int)
         block_height_url = self.base_url + "block-height/" + str(block_height) + "?format=json"
@@ -175,15 +159,6 @@ class BlockchainScraper(RestRequests):
         """
         Get a transaction object 
 
-        Parameters
-        ----------
-        transaction_hash : str
-            hash value of a particular transaction on the bitcoin blockchain.
-
-        Returns
-        -------
-        result : TYPE
-            DESCRIPTION.
         """
         assert isinstance(transaction_hash, str)
         
@@ -193,11 +168,7 @@ class BlockchainScraper(RestRequests):
     
     def getAddressInfo(self, bitcoin_address):
         """
-        TODO implement limit & offset when there are more than 50 transactions
-
-        Returns
-        -------
-        result : dict            
+        TODO implement limit & offset when there are more than 50 transactions          
 
         """
         assert isinstance(bitcoin_address, str)
@@ -234,7 +205,24 @@ class BlockchainScraper(RestRequests):
         Mining data in block dict ->   tx/0/inputs/0/script: 
         """
         return Utils.hexStringToAscii(block['tx'][0]['inputs'][0]['script'])
-   
+    
+    def __getPayoutAddressesFromCbTx(self, coinbase_tx):
+        payout_addresses = []
+        
+        for output in coinbase_tx['out']:
+            if 'addr' in output.keys():
+                payout_addresses.append(output['addr'])
+        return payout_addresses
+        
+    
+    def __getBlockReward(self, coinbase_tx):
+        total_reward = 0
+        
+        for output in coinbase_tx['out']: #if there is a payout addres and payout value
+            if ('addr' in output.keys()) and ('value' in output.keys()):
+                total_reward += output['value']
+        return total_reward        
+        
     
     def getBlockInformation(self, block_hash):
         """
@@ -259,7 +247,7 @@ class BlockchainScraper(RestRequests):
                 block = self.getBlock(block_hash)
             except Exception as e:
                 # For anything else, Bloxplorer will raise a BlockstreamClientError.
-                self.logger.exception("Encoutered a generic BlockstreamClientError Exception on try {} out of {}.".format(attempt+1, max_tries))
+                self.logger.error("Encoutered a generic BlockstreamClientError Exception on try {} out of {}.".format(attempt+1, max_tries))
                 self.logger.info("Exception message: {}".format(str(e)))
                 self.logger.info("Trying again after 5 seconds.")
                 time.sleep(5)
@@ -268,14 +256,19 @@ class BlockchainScraper(RestRequests):
                 break
         
         if not block:
-            self.logger.info("Couldn't retrieve the block.")
+            self.logger.info("Couldn't retrieve the block. Returning empty dict.")
             return {}
         
         self.logger.debug("Processing block information.")
         block_height = self.__extractBlockHeight(block)
         coinbase_tx = self.__extractCoinbaseTransaction(block)
         coinbase_message = Utils.removeNonAscii(self.__getCoinbaseScriptMessage(block))
-        payout_address = coinbase_tx['out'][0]['addr']
+        
+        #Utils.prettyPrint(coinbase_tx['out'])
+        #payout_addresses = coinbase_tx['out'][0]['addr']
+        block_reward = self.__getBlockReward(coinbase_tx)
+        payout_addresses = self.__getPayoutAddressesFromCbTx(coinbase_tx)
+        #self.logger.debug("Total reward: {}, Payout Addresses: [{}]".format(block_reward, payout_addresses))
 
         block_information = {
             "block_hash": block_hash,
@@ -285,9 +278,9 @@ class BlockchainScraper(RestRequests):
             "coinbase_tx_hash": coinbase_tx['hash'],
             "coinbase_message": coinbase_message,
             "pool_name": None,
-            "pool_address": payout_address,
+            "payout_addresses": payout_addresses,
             "fee_block_reward": block['fee'], 
-            "total_block_reward": coinbase_tx['out'][0]['value']
+            "total_block_reward": block_reward
             }
         self.logger.debug("Block information succesfully obtained from the Blockchain.info API.")
         return block_information

@@ -84,9 +84,38 @@ class BlockstreamScraper(RestRequests):
         return block
 
     def getCoinbaseTransaction(self, block_hash):
-        tx_hashes = explorer.blocks.get_txids(block_hash)
-        coinbase_tx_hash = tx_hashes.data[0]
-        coinbase_tx = explorer.tx.get(coinbase_tx_hash)
+        
+        max_tries = 3
+        self.logger.debug("Obtaining coinbase transaction information.")
+        
+        for attempt in range(max_tries):
+            try:
+                tx_hashes = explorer.blocks.get_txids(block_hash)
+                coinbase_tx_hash = tx_hashes.data[0]
+                coinbase_tx = explorer.tx.get(coinbase_tx_hash)
+            except Exception as ex:
+                exception_name = type(ex).__name__
+                self.logger.error("Found: " + str(ex))
+                if 'BlockstreamClientTimeout' in exception_name:
+                    #In the event of a Timeout, BlockstreamClientTimeout will be raised.
+                    self.logger.info("Encoutered a BlockstreamClientTimeout Exception on try {} out of {}.".format(attempt+1, max_tries))
+                    self.logger.info("Trying again after 5 seconds.")
+                    self.logger.info("Waiting...")
+                    time.sleep(5)
+                elif 'BlockstreamApiError' in exception_name:
+                    # In the event of an API error (e.g. Invalid resource, Bad Request, etc), Bloxplorer will raise BlockstreamApiError.
+                    self.logger.info("Encoutered a BlockstreamApiError Exception on try {} out of {}.".format(attempt+1, max_tries))
+                    self.logger.info("Trying again after 5 seconds.")
+                    self.logger.info("Waiting...")
+                    time.sleep(5)    
+                else: # BlockstreamClientError
+                    # For anything else, Bloxplorer will raise a BlockstreamClientError.
+                    self.logger.error("Encoutered a generic BlockstreamClientError Exception on try {} out of {}.".format(attempt+1, max_tries))
+                    self.logger.error("Exception message: {}".format(str(ex)))
+                    time.sleep(1)
+            else:
+                self.logger.debug("Transaction gathered.")
+                break
         return coinbase_tx.data
     
 # ====================================   
@@ -104,6 +133,22 @@ class BlockstreamScraper(RestRequests):
     
     def __extractBlockTimestamp(self, block):
         return block['timestamp']
+    
+    def __getPayoutAddressesFromCbTx(self, coinbase_tx):
+        payout_addresses = []
+        
+        for output in coinbase_tx['vout']:
+            if 'scriptpubkey_address' in output.keys():
+                payout_addresses.append(output['scriptpubkey_address'])
+        return payout_addresses
+        
+    def __getBlockReward(self, coinbase_tx):
+        total_reward = 0
+        
+        for output in coinbase_tx['vout']: #if there is a payout addres and payout value
+            if ('scriptpubkey_address' in output.keys()) and ('value' in output.keys()):
+                total_reward += output['value']
+        return total_reward 
                 
     def getBlockInformation(self, block_hash):
         """
@@ -131,15 +176,15 @@ class BlockstreamScraper(RestRequests):
                 if 'BlockstreamClientTimeout' in exception_name:
                     #In the event of a Timeout, BlockstreamClientTimeout will be raised.
                     self.logger.info("Encoutered a BlockstreamClientTimeout Exception on try {} out of {}.".format(attempt+1, max_tries))
-                    self.logger.info("Trying again after 10 seconds.")
+                    self.logger.info("Trying again after 5 seconds.")
                     self.logger.info("Waiting...")
-                    time.sleep(10)
+                    time.sleep(5)
                 elif 'BlockstreamApiError' in exception_name:
                     # In the event of an API error (e.g. Invalid resource, Bad Request, etc), Bloxplorer will raise BlockstreamApiError.
                     self.logger.info("Encoutered a BlockstreamApiError Exception on try {} out of {}.".format(attempt+1, max_tries))
-                    self.logger.info("Trying again after 10 seconds.")
+                    self.logger.info("Trying again after 5 seconds.")
                     self.logger.info("Waiting...")
-                    time.sleep(10)    
+                    time.sleep(5)    
                 else: # BlockstreamClientError
                     # For anything else, Bloxplorer will raise a BlockstreamClientError.
                     self.logger.error("Encoutered a generic BlockstreamClientError Exception on try {} out of {}.".format(attempt+1, max_tries))
@@ -157,7 +202,11 @@ class BlockstreamScraper(RestRequests):
         block_height = self.__extractBlockHeight(block)
         coinbase_tx = self.getCoinbaseTransaction(block_hash)
         coinbase_message = Utils.hexStringToAscii(coinbase_tx['vin'][0]['scriptsig'])
-        payout_address = coinbase_tx['vout'][0]['scriptpubkey_address']
+        
+        #Utils.prettyPrint(coinbase_tx['vout'])
+        payout_addresses = self.__getPayoutAddressesFromCbTx(coinbase_tx)#coinbase_tx['vout'][0]['scriptpubkey_address']
+        block_reward = self.__getBlockReward(coinbase_tx)
+        #self.logger.info("Total reward: {}, Payout Addresses: [{}]".format(block_reward, payout_addresses))
 
         block_information = {
             "block_hash": block_hash,
@@ -167,9 +216,9 @@ class BlockstreamScraper(RestRequests):
             "coinbase_tx_hash": coinbase_tx['txid'],
             "coinbase_message": coinbase_message,
             "pool_name": None,
-            "pool_address": payout_address,
-            "fee_block_reward": coinbase_tx['vout'][0]['value'] - Utils.getBlockReward(self.__extractBlockHeight(block)), 
-            "total_block_reward": coinbase_tx['vout'][0]['value']
+            "payout_addresses": payout_addresses,
+            "fee_block_reward": block_reward - Utils.getBlockReward(self.__extractBlockHeight(block)), 
+            "total_block_reward": block_reward
             }
         self.logger.debug("Block information succesfully obtained from the Blockstream.info API.")
         return block_information

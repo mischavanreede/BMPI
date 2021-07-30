@@ -29,7 +29,7 @@ class RestRequests:
         self.config = config
         self.logger = logger
         self.timeout = 10                  # Response timeout
-        self.request_delay = 0.1      # Time delay between GET requests
+        self.request_delay = 0.01      # Time delay between GET requests
 
 
     def change_timeout(self, timeout):

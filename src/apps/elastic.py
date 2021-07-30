@@ -281,7 +281,7 @@ class ElasticsearchIndexes():
                     "timestamp" : {"type": "date"},
                     "coinbase_tx_hash": {"type": "text"},
                     "coinbase_message": {"type": "text"},
-                    "pool_address": {"type": "text"},
+                    "payout_addresses": {"type": "text"},
                     "fee_block_reward": {"type": "integer"}, 
                     "total_block_reward": {"type": "integer"}
                     } 

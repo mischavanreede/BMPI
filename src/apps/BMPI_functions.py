@@ -65,6 +65,10 @@ class BMPIFunctions():
         block_store_interval = 10
         forced_stopped = False
         
+        total_blocks_gathered = 0
+        total_blocks_skipped = 0
+        total_number_of_api_conflicts = 0
+        
         while block_height >= 0:
             succesfully_gathered_block = False
             exception_encoutered = False
@@ -75,6 +79,15 @@ class BMPIFunctions():
                 self.logger.info("Lenght of block list: {}".format(len(self.block_list)))
                 self.logger.info("Lenght of API conflicts: {}".format(len(self.API_conflicts)))
                 self.logger.info("Lenght of skipped block list: {}".format(len(self.skipped_blocks_list)))
+                
+                total_blocks_gathered += len(self.block_list)
+                total_blocks_skipped += len(self.API_conflicts)
+                total_number_of_api_conflicts += len(self.skipped_blocks_list)
+                
+                self.logger.info("Total number of blocks successfully gathered: {}".format(total_blocks_gathered))
+                self.logger.info("Total number of blocks skipped: {}".format(total_blocks_skipped))
+                self.logger.info("Total number of blocks API conflicts: {}".format(total_number_of_api_conflicts))
+                
                 #self.performInterimBlockStorage()
           
             if forced_stopped:
@@ -83,6 +96,7 @@ class BMPIFunctions():
             try: # Gathering new block
                 self.logger.info("Gathering block at height: {}".format(block_height))
                 result = self.scraper_controller.getBlockInfoFromScrapers(block_hash)
+                #self.logger.debug("Found block: {}".format(result))
                 
             except KeyboardInterrupt:
                 forced_stopped = True
