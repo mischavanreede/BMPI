@@ -133,13 +133,13 @@ class ElasticsearchController():
             self.logger.error("An error has occurred: {}".format(e))
         
         
-    def __delete_index(self, index_name):
+    def delete_index(self, index_name):
         # Delete specified index from ES instance, maybe add { ignore=[400, 404] }  as argument if there are errors.
-        self.logger.debug("Trying to delete index [{}]".format(index_name))
+        self.logger.info("Trying to delete index [{}]".format(index_name))
         if self.__index_exists(index_name):
             try: 
                 self.es_connection.indices.delete(index=index_name)
-                self.logger.debug("Index with name [{}] deleted".format(index_name))
+                self.logger.info("Index with name [{}] deleted".format(index_name))
                 return
             except Exception as e:
                 self.logger.error("An error has occurred: {}".format(e))

@@ -11,7 +11,7 @@ import time
 import sys
 import click
 
-from .elastic import ElasticsearchController
+from .elastic import ElasticsearchController, ElasticsearchIndexes
 from .API_scrapers.scraper_controller import ScraperController
 from .API_scrapers.blockchain_scraper import BlockchainScraper
 from .API_scrapers.btc_scraper import BtcScraper
@@ -43,7 +43,16 @@ class BMPIFunctions():
         
 
     
-    def removeStoredElasticsearchData(self):
+    def removeALLStoredElasticsearchData(self):
+        self.logger.info("Removing all data from elasticsearch.")
+        for index_name in ElasticsearchIndexes.INDEX_NAMES:
+            self.es_controller.delete_index(index_name)
+        self.logger.info("All data removed.")
+        
+    
+    
+    def removeStoredElasticsearchData(self, index):
+        print("TODO: remove specified index")
         pass
     
     
@@ -62,7 +71,7 @@ class BMPIFunctions():
         block_height = latest_height
         block_hash = latest_block_hash
         
-        block_store_interval = 10
+        block_store_interval = 100
         forced_stopped = False
         
         total_blocks_gathered = 0
