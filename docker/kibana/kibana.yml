@@ -39,8 +39,8 @@ elasticsearch.hosts: ["http://elasticsearch:9200"]
 # the username and password that the Kibana server uses to perform maintenance on the Kibana
 # index at startup. Your Kibana users still need to authenticate with Elasticsearch, which
 # is proxied through the Kibana server.
-#elasticsearch.username: "kibana_system"
-#elasticsearch.password: "pass"
+elasticsearch.username: "kibana_system"
+elasticsearch.password: "UeYcBBmRPCkisS67bRcK"
 
 # Kibana can also authenticate to Elasticsearch via "service account tokens".
 # If may use this token instead of a username/password.
@@ -115,11 +115,12 @@ elasticsearch.hosts: ["http://elasticsearch:9200"]
 
 # xpack.security.enabled: 'true'
 
-# https://www.elastic.co/guide/en/kibana/current/monitoring-settings-kb.html#monitoring-ui-cgroup-settings
-xpack.monitoring.ui.container.elasticsearch.enabled: true
+#xpack.security.encryptionKey: "something_at_least_32_characters"
+xpack.security.encryptionKey: "#Wwx92vcpj4w^YhYtvh5ukwnQzkXKrur"
 
-# Content Security Policy. Defaults to true. https://www.elastic.co/guide/en/kibana/7.10/production.html#csp-strict-mode
-csp.strict: true
+
+# https://www.elastic.co/guide/en/kibana/current/monitoring-settings-kb.html#monitoring-ui-cgroup-settings
+#xpack.monitoring.ui.container.elasticsearch.enabled: true
 
 
 

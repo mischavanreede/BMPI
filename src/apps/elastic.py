@@ -37,8 +37,6 @@ class ElasticsearchController():
         self.logger = logger
         self.es_connection = self.__connect_elasticsearch()
         
-        self.__delete_index('blocks')
-        
         self.__create_all_indices()
         
         
@@ -211,7 +209,7 @@ class ElasticsearchController():
         max_tries = 5
         while True:
             try:
-                self.logger.info("Storing [{}]records in index: [{}]".format(len(records), index_name))
+                self.logger.info("Storing [{}] records in index: [{}]".format(len(records), index_name))
                 elasticsearch.helpers.bulk(self.es_connection, actions=action)
                 is_stored = True
                 self.logger.debug("Storing records was succesful")
@@ -260,7 +258,7 @@ class ElasticsearchController():
 
 class ElasticsearchIndexes():
     
-    INDEX_NAMES = ["blocks"]
+    INDEX_NAMES = ["blocks_from_scrapers", "skipped_blocks", "api_block_data_conflicts"]
     
     SETTINGS = {
             "settings" : {
@@ -268,7 +266,7 @@ class ElasticsearchIndexes():
     	        "number_of_replicas": 0
             }
         }
-    
+    # 0 index replicas because there is only 1 ES node
     #https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-params.html
 
     MAPPINGS = {
@@ -291,8 +289,7 @@ class ElasticsearchIndexes():
             "mappings": {
                 "properties": {
                      "block_height": {"type": "integer"},
-                     "block_hash": {"type": "text",
-                                    "null_value": "NOT_FOUND"},
+                     "block_hash": {"type": "text"},
                      "reason_for_skipping": {"type": "text"}
                     }                
                 }
@@ -309,21 +306,22 @@ class ElasticsearchIndexes():
                     }                
                 }
             },
-        "CONFLICT_API_block_data_conflicts": {
+        "api_block_data_conflicts": {
             "mappings": {
                 "properties": {
                     "block_height": {"type": "integer"},
                     "block_hash": {"type": "text"},
                     "gathered_information": {
-                           "scraper": {"type": "text"},
-                           "gathered_block": {"type": "flattened"}
-                                
-                        
+                            "type": "nested",
+                            "properties": {
+                                    "scraper": {"type": "text"},
+                                    "gathered_block": {"type": "flattened"}
+                                }       
                         }
                     }                
                 }
             },
-        "CONFLICT_pool_name_attribution_mismatch": {
+        "pool_name_attribution_conflict": {
             "mappings": {
                 "properties": {
                     "block_height": {"type": "integer"},
@@ -334,7 +332,7 @@ class ElasticsearchIndexes():
                     }                
                 }
             },
-        "CONFLICT_multiple_cb_tag_matches": {
+        "multiple_cb_tag_matches_conflict": {
             "mappings": {
                 "properties": {
                     "block_hash": {"type": "text"},

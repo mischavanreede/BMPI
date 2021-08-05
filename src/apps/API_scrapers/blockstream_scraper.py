@@ -212,10 +212,9 @@ class BlockstreamScraper(RestRequests):
             "block_hash": block_hash,
             "prev_block_hash": self.__extractPrevBlockHash(block),
             "block_height": block_height,
-            "timestamp" : self.__extractBlockTimestamp(block),
+            "timestamp" : self.__extractBlockTimestamp(block) * 1000,
             "coinbase_tx_hash": coinbase_tx['txid'],
             "coinbase_message": coinbase_message,
-            "pool_name": None,
             "payout_addresses": payout_addresses,
             "fee_block_reward": block_reward - Utils.getBlockReward(self.__extractBlockHeight(block)), 
             "total_block_reward": block_reward

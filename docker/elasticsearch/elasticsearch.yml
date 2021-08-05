@@ -14,7 +14,7 @@
 #
 # Use a descriptive name for your cluster:
 #
-cluster.name: bmpi-es-kib-cluster
+cluster.name: bmpi-cluster
 #
 # ------------------------------------ Node ------------------------------------
 #
@@ -27,6 +27,8 @@ node.name: es01
 #node.attr.rack: r1
 #
 discovery.type: single-node
+
+node.master: 'true'
 #
 # ----------------------------------- Paths ------------------------------------
 #
@@ -55,7 +57,7 @@ bootstrap.memory_lock: true
 # By default Elasticsearch is only accessible on localhost. Set a different
 # address here to expose this node on the network:
 #
-network.host: 0.0.0.0
+network.host: "0.0.0.0"
 #network.bind_host:
 #nework.publish_host: 
 #
@@ -92,7 +94,7 @@ http.cors.enabled: true
 #
 #----------------------------------- Security ----------------------------------
 #
-#xpack.security.enabled: true
+xpack.security.enabled: true
 #
 # License
 # xpack.license.self_generated.type: basic

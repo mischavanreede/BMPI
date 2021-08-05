@@ -36,7 +36,7 @@ class BMPIFunctions():
     def __initialize_modules(self):
         
         
-        #self.es_controller = ElasticsearchController(config=self.config, logger=self.logger)
+        self.es_controller = ElasticsearchController(config=self.config, logger=self.logger)
         
         self.scraper_controller = ScraperController(config=self.config, logger=self.logger)
 
@@ -76,20 +76,17 @@ class BMPIFunctions():
             
             # Store blocks when %block_store_interval blocks are gathered.
             if (block_height % block_store_interval == 0) or forced_stopped:
-                self.logger.info("Lenght of block list: {}".format(len(self.block_list)))
-                self.logger.info("Lenght of API conflicts: {}".format(len(self.API_conflicts)))
-                self.logger.info("Lenght of skipped block list: {}".format(len(self.skipped_blocks_list)))
                 
                 total_blocks_gathered += len(self.block_list)
                 total_blocks_skipped += len(self.API_conflicts)
                 total_number_of_api_conflicts += len(self.skipped_blocks_list)
                 
+                self.performInterimBlockStorage()
+                
                 self.logger.info("Total number of blocks successfully gathered: {}".format(total_blocks_gathered))
                 self.logger.info("Total number of blocks skipped: {}".format(total_blocks_skipped))
                 self.logger.info("Total number of blocks API conflicts: {}".format(total_number_of_api_conflicts))
                 
-                #self.performInterimBlockStorage()
-          
             if forced_stopped:
                 sys.exit()
           
@@ -169,21 +166,21 @@ class BMPIFunctions():
 
     def performInterimBlockStorage(self):
         # Store succesfully gathered blocks
-        if self.es_controller.bulk_store(records=self.block_list, index="blocks_from_scrapers"):
+        if self.es_controller.bulk_store(records=self.block_list, index_name="blocks_from_scrapers"):
             self.logger.info("Succesfully stored last {} blocks".format(len(self.block_list)))
             self.block_list.clear()
         else:
             self.logger.error("Failed to store blocks in es. Please check the logs.")
         # Store skipped blocks
         if len(self.skipped_blocks_list) > 0:
-            if self.es_controller.bulk_store(records=self.skipped_blocks_list, index="skipped_blocks"):
+            if self.es_controller.bulk_store(records=self.skipped_blocks_list, index_name="skipped_blocks"):
                 self.logger.info("Succesfully stored last {} API data conflicts".format(len(self.skipped_blocks_list)))
                 self.skipped_blocks_list.clear()
             else:
                 self.logger.error("Failed to store skipped blocks heights in es. Please check the logs.")
         # Store API data conflicts
         if len(self.API_conflicts) > 0:
-            if self.es_controller.bulk_store(records=self.API_conflicts, index="CONFLICT_API_block_data_conflicts"):
+            if self.es_controller.bulk_store(records=self.API_conflicts, index_name="api_block_data_conflicts"):
                 self.logger.info("Succesfully stored last {} API data conflicts".format(len(self.API_conflicts)))
                 self.API_conflicts.clear()
             else:
