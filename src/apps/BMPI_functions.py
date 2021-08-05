@@ -83,7 +83,7 @@ class BMPIFunctions():
                 
                 self.performInterimBlockStorage()
                 
-                self.logger.info("Total number of blocks successfully gathered: {}".format(total_blocks_gathered))
+                self.logger.info("Total number of blocks successfully stored: {}".format(total_blocks_gathered))
                 self.logger.info("Total number of blocks skipped: {}".format(total_blocks_skipped))
                 self.logger.info("Total number of blocks API conflicts: {}".format(total_number_of_api_conflicts))
                 

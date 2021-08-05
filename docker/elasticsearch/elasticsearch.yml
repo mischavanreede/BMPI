@@ -95,6 +95,7 @@ http.cors.enabled: true
 #----------------------------------- Security ----------------------------------
 #
 xpack.security.enabled: true
+xpack.security.transport.ssl.enabled: true
 #
 # License
 # xpack.license.self_generated.type: basic
