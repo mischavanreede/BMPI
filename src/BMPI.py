@@ -30,6 +30,7 @@ from logging.handlers import TimedRotatingFileHandler
 
 from configparser import ConfigParser
 import click
+import os
 import sys
 
 # project imports
@@ -40,8 +41,13 @@ from apps.BMPI_functions import BMPIFunctions
 
 
 def initialize_config():
+    
+    cwd = os.getcwd()
+    print("cwd: " + cwd)
+    config_path = cwd + "/config/settings.conf"
+    print("config path: " + config_path)
     config = ConfigParser()
-    config.read("config/settings.conf")
+    config.read(config_path)
     return config
 
 def initialize_logger(config): #For logging, look at: https://docs.python.org/3/howto/logging.html  and  https://docs.python.org/3/howto/logging.html#logging-advanced-tutorial
