@@ -46,6 +46,8 @@ def initialize_config():
     print("cwd: " + cwd)
     config_path = cwd + "/config/settings.conf"
     print("config path: " + config_path)
+    
+    assert os.path.exists(config_path)
     config = ConfigParser()
     config.read(config_path)
     return config
