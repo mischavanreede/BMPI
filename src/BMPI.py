@@ -64,13 +64,7 @@ def initialize_logger(config): #For logging, look at: https://docs.python.org/3/
             https://stackoverflow.com/questions/15727420/using-logging-in-multiple-modules
     """
     
-    # set up logging to file - see previous section for more details
-    # logging.basicConfig(level=logging.DEBUG,
-    #                     format='%(asctime)s.%(msecs)d | %(name)s | %(module)s-%(lineno)8s | %(levelname)-8s | %(message)s',
-    #                     datefmt='%m-%d %H:%M:%S',
-    #                     filename=self.config['constants']['LOG_FILE_PATH'],
-    #                     filemode='w')
-    
+   
     bmpi_logger = logging.getLogger("BMPI")
     bmpi_logger.setLevel(logging.DEBUG)
     
@@ -84,9 +78,11 @@ def initialize_logger(config): #For logging, look at: https://docs.python.org/3/
     
     # Create file handler, Obtains log file location from config (settings.conf)
     file_path = config.get('Logging', 'LOG_FILE_PATH')
-    file_handler = logging.FileHandler(filename=file_path, mode='a',encoding='utf-8')
-    file_handler.filemode = 'w'
-    file_handler.setFormatter(formatter)
+    #file_handler = logging.FileHandler(filename=file_path, mode='a', encoding='utf-8')
+    
+    timed_rotating_file_handler = logging.handlers.TimedRotatingFileHandler(filename=file_path, when='h', interval=6, backupCount=50, encoding='utf-8')
+    timed_rotating_file_handler.setFormatter(formatter)
+     
     
     # Create stream handler for console output
     stream_handler = logging.StreamHandler()
@@ -94,7 +90,7 @@ def initialize_logger(config): #For logging, look at: https://docs.python.org/3/
     stream_handler.setFormatter(formatter)
     
     # Add handlers to logger
-    bmpi_logger.addHandler(file_handler)
+    bmpi_logger.addHandler(timed_rotating_file_handler)
     bmpi_logger.addHandler(stream_handler)
     
     # Stop logs from propagating to the root logger
