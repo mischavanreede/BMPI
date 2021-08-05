@@ -42,10 +42,8 @@ from apps.BMPI_functions import BMPIFunctions
 
 def initialize_config():
     
-    cwd = os.getcwd()
-    print("cwd: " + cwd)
+    cwd = os.path.abspath(os.path.dirname(sys.argv[0]))
     config_path = cwd + "/config/settings.conf"
-    print("config path: " + config_path)
     
     assert os.path.exists(config_path)
     config = ConfigParser()
