@@ -27,8 +27,8 @@ class BMPIFunctions():
         self.config = config
         
         self.block_list = []
-        self.API_conflicts = []
         self.skipped_blocks_list = []
+        self.API_conflicts = []
         
         # Init modules
         self.__initialize_modules()
@@ -59,24 +59,32 @@ class BMPIFunctions():
     def gatherAndStoreMissingBlocksFromScrapers(self):
         pass
     
-    def gatherAndStoreBlocksFromScrapers(self):
+    def gatherAndStoreBlocksFromScrapers(self, start_hash=None,
+                                         start_height=None,
+                                         blocks_stored=0,
+                                         blocks_skipped=0,
+                                         api_conflicts=0):
         '''
         This method is used to gather relevant block data from the implemented
         blockchain web service API scrapers. It traverses the entire blockchain
         starting at the latest block_height.
 
         '''
-        latest_block_hash, latest_height = self.scraper_controller.getLatestBlockHashAndHeight()
+        if start_hash is not None and start_height is not None:
+            block_height = start_height
+            block_hash = start_hash
         
-        block_height = latest_height
-        block_hash = latest_block_hash
+        else:
+            latest_block_hash, latest_height = self.scraper_controller.getLatestBlockHashAndHeight()        
+            block_height = latest_height
+            block_hash = latest_block_hash
         
         block_store_interval = 100
         forced_stopped = False
         
-        total_blocks_gathered = 0
-        total_blocks_skipped = 0
-        total_number_of_api_conflicts = 0
+        total_blocks_stored = blocks_stored # 0 if not set
+        total_blocks_skipped = blocks_skipped # 0 if not set
+        total_number_of_api_conflicts = api_conflicts # 0 if not set
         
         while block_height >= 0:
             succesfully_gathered_block = False
@@ -86,13 +94,13 @@ class BMPIFunctions():
             # Store blocks when %block_store_interval blocks are gathered.
             if (block_height % block_store_interval == 0) or forced_stopped:
                 
-                total_blocks_gathered += len(self.block_list)
-                total_blocks_skipped += len(self.API_conflicts)
-                total_number_of_api_conflicts += len(self.skipped_blocks_list)
+                total_blocks_stored += len(self.block_list)
+                total_blocks_skipped += len(self.skipped_blocks_list)
+                total_number_of_api_conflicts += len(self.API_conflicts) 
                 
                 self.performInterimBlockStorage()
                 
-                self.logger.info("Total number of blocks successfully stored: {}".format(total_blocks_gathered))
+                self.logger.info("Total number of blocks successfully stored: {}".format(total_blocks_stored))
                 self.logger.info("Total number of blocks skipped: {}".format(total_blocks_skipped))
                 self.logger.info("Total number of blocks API conflicts: {}".format(total_number_of_api_conflicts))
                 
@@ -209,7 +217,7 @@ class BMPIFunctions():
                 
             except Exception as e: 
                 exception_type = type(e).__name__
-                self.logger.exception("Exception encountered: {}".format(exception_type))
+                self.logger.error("Exception encountered: {}".format(exception_type))
                 self.logger.warning("This exception was found while retrieving the block_hash at height: {}".format(previous_height))
                 self.logger.warning("Waiting 30 seconds before trying again.")
                 time.sleep(30)

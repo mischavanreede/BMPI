@@ -2,6 +2,8 @@
 data/esdata1
 docker/elasticsearch/data
 
+# log files:
+logs/
 
 # ---------------------
 

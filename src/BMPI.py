@@ -116,14 +116,38 @@ def cli():
     
 
 @cli.command()
-def gather_scraper_data():
+@click.option('--start_height', default=None, show_default=True, type=int, help='height of the block to start the run.')
+@click.option('--start_hash', default=None, show_default=True, type=str, help='hash of the block to start the run.')
+@click.option('--blocks_stored', default=0, show_default=True, type=int, help='# of blocks stored during previous runs.')
+@click.option('--blocks_skipped', default=0, show_default=True, type=int, help='# of blocks skipped on previour runs.')
+@click.option('--api_conflicts', default=0, show_default=True, type=int, help='# of api_conflics found during previous runs.')
+def gather_scraper_data(start_height, start_hash, blocks_stored, blocks_skipped, api_conflicts):
     """
     Gathers block data from implemented scrapers and store it in elasticsearch. 
+    If using parameters; make sure start_hash and start_height are from the 
+    same block and belong together, this is not checked during runtime.  
+    
     """
+    if (start_height is None) ^ (start_hash is None):
+        logger.error('Please specify both arguments to start at a specific block.')
+        logger.error('You can also omit both if you want to start at the latest block.')
+        sys.exit(1)
+    
+    if start_height is not None and start_hash is not None:
+        logger.info('Starting the run at a specified hash and height.')
+        logger.info('Height: {},  Hash: {}'.format(start_height, start_hash))
+    else:
+        logger.info('Starting the run at the latest block height and hash.')
+    
     BMPI = BMPIFunctions(config=config, logger=logger)
     try:
-        BMPI.gatherAndStoreBlocksFromScrapers()
+        BMPI.gatherAndStoreBlocksFromScrapers(start_height=start_height,
+                                              start_hash=start_hash,
+                                              blocks_stored=blocks_stored,
+                                              blocks_skipped=blocks_skipped,
+                                              api_conflicts=api_conflicts)
     except Exception as ex:
+        logger.exception("An exception occured during runtime: {}".format(str(ex)))
         print("An error occured:")
         print("Error message: {}".format(str(ex)))
         sys.exit(1)
