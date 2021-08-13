@@ -298,7 +298,7 @@ class BMPIFunctions():
                 "block_hash": block_hash,
                 "reason_for_skipping": "Conflicting API information."
                 }
-            #self.skipped_blocks_list.append(skipped_blocks_entry)
+            self.skipped_blocks_list.append(skipped_blocks_entry)
         
         self.logger.debug("Storing results in ES.")
         self.performInterimBlockStorage()
