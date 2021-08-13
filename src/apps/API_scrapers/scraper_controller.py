@@ -112,7 +112,7 @@ class ScraperController:
             "block_height": None,
             "gathered_data": [
                 {
-                "scraper": scraper,
+                "scraper": str(scraper),
                 "block": block
                 } 
                 for scraper, block in zip(self.scrapers, block_info_list)]
@@ -241,7 +241,7 @@ class ScraperController:
                 prev_hashes.append(block['prev_block_hash'])
                  
             conflict_entry = self.__constructConflictingApiInformationDataEntry(block_hash, block_info_list)
-            self.__addConflictingData(conflict_type="conflicting_API_information", conflict_entry=conflict_entry)
+            #self.__addConflictingData(conflict_type="conflicting_API_information", conflict_entry=conflict_entry)
                 
             if self.all_equal(prev_hashes):
                 self.logger.info("Previous hashes are equal.")

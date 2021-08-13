@@ -52,8 +52,10 @@ class BMPIFunctions():
     
     
     def removeStoredElasticsearchData(self, index):
-        print("TODO: remove specified index")
-        pass
+        self.logger.info("Removing the all data in index: {}".format(index))
+        self.es_controller.delete_index(index)
+        self.logger.info("Data removed.")
+    
     
     
     def gatherAndStoreMissingBlocksFromScrapers(self):
@@ -191,7 +193,7 @@ class BMPIFunctions():
         # Store skipped blocks
         if len(self.skipped_blocks_list) > 0:
             if self.es_controller.bulk_store(records=self.skipped_blocks_list, index_name="skipped_blocks"):
-                self.logger.info("Succesfully stored last {} API data conflicts".format(len(self.skipped_blocks_list)))
+                self.logger.info("Succesfully stored last {} skipped blocks".format(len(self.skipped_blocks_list)))
                 self.skipped_blocks_list.clear()
             else:
                 self.logger.error("Failed to store skipped blocks heights in es. Please check the logs.")
@@ -242,7 +244,67 @@ class BMPIFunctions():
                 break # break out while true loop
         return block_hash, block_height
     
-
+    
+    def gatherAndStoreSpecificBlock(self, block_height=None, block_hash=None):
+        
+        if block_height is None or block_hash is None:
+            self.logger.error("Please specify a valid block height and block hash.")
+        
+        succesfully_gathered_block = False
+        exception_encoutered = False
+               
+        try: # Gathering new block
+            self.logger.info("Gathering block at height: {}".format(block_height))
+            result = self.scraper_controller.getBlockInfoFromScrapers(block_hash)
+            self.logger.debug("Found block: {}".format(result))
+                           
+        except Exception as e:
+            # Catch timeout exc and other exceptions
+            self.logger.warning("Exception encountered.")
+            exception_encoutered = True
+            exception_type = type(e).__name__
+            self.logger.info("Type of exception: {}".format(exception_type))
+            self.logger.debug(str(e))
+            skipped_blocks_entry = {
+                    "block_height": block_height,
+                    "block_hash": block_hash,
+                    "reason_for_skipping": "Exception encountered: {}".format(exception_type)
+                    }
+            self.skipped_blocks_list.append(skipped_blocks_entry)
+        
+        else: # No exception found and some result is returned.
+            succesfully_gathered_block = (result['status'] == "success")
+            conflict_encountered = (result['status'] == "conflict")
+                
+        if succesfully_gathered_block:
+            # Set variables (block_hash and block_height) for next iteration of outer while
+            block = result['block']
+            self.block_list.append(block)
+            self.logger.debug("Block succesfully gathered.\n")
+            
+        if exception_encoutered:
+            self.logger.error("Please check the logs to see what happened.")
+            sys.exit(1)
+                
+        if conflict_encountered:
+            self.logger.info("Conflict encountered.")
+            # Set block height to conflict entry
+            result['conflict_entry']['block_height'] = block_height
+            # Add conflict block to list
+            self.API_conflicts.append(result['conflict_entry'])
+            # Add skipped block
+            skipped_blocks_entry = {
+                "block_height": block_height,
+                "block_hash": block_hash,
+                "reason_for_skipping": "Conflicting API information."
+                }
+            #self.skipped_blocks_list.append(skipped_blocks_entry)
+        
+        self.logger.debug("Storing results in ES.")
+        self.performInterimBlockStorage()
+        self.logger.debug("Results stored.")
+        
+    
 
     def attributePoolNames(self):
         '''
@@ -309,7 +371,6 @@ class BMPIFunctions():
         #     else:
         #         tag_match = False
         #         for coinbase_tag, pool_info in self.pool_data_json['coinbase_tags'].items():
-                    
         #             # Keep track of multiple tag matches
         #             match_list = []
                     
@@ -336,15 +397,24 @@ class BMPIFunctions():
         #     return        
     
     
+    def printScrapers(self):
+        
+        self.logger.info("Printing scrapers for testing purposes.")
+        for scraper in self.scraper_controller.scrapers:
+            self.logger.debug("Found scraper: {}".format(repr(scraper)))
+            print(repr(scraper))
+            print("Done.")
+            self.logger.debug("Done printing scrapers.")
+        
+        
+    
     def runScrapers(self):
         self.scraper_controller.getLastBlocks(n=25)
         print("Done.")
     
     @Utils.printTiming
     def run(self):
-        file =  open(file='../pools/pool_data.json', mode='r', encoding='utf-8')
-        combined_pool_data_json = json.load(file)
-        file.close()
+        pass
         
         
     
