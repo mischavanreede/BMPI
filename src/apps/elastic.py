@@ -240,7 +240,13 @@ class ElasticsearchController():
             self.logger.debug("ES Query [{}] on index [{}] sucessful. Returning response object.".format(query, index))
             self.logger.debug("Found a total of {} results".format(response.hits.total))
             #return response['hits']['hits']
-            return s.scan()
+            
+            self.logger.debug("scan type: {}".format(type(s.scan())))
+            self.logger.debug("scan results: {}".format(s.scan()))
+            
+            results = [d.to_dict() for d in s.scan()]
+            self.logger.debug("results to list: {}".format(results))
+            return results
         
         self.logger.error("ES Query failed. Returning None.")
         return None
