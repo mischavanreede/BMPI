@@ -449,7 +449,7 @@ class BMPIFunctions():
                     doc_type= "_doc"
                     index_name = "blocks_from_scrapers"
                     if should_delete:
-                        self.es_controller.delete_doc(index=index_name, doc_type=doc_type, id=doc_id)
+                        self.es_controller.delete_doc(index=index_name, doc_type=doc_type, doc_id=doc_id)
                 else:
                     self.logger.warning("Height doesn't match. Not deleting this document.")
                     mismatches.append((height, doc_id))
