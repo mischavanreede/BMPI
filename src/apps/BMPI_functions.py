@@ -457,7 +457,7 @@ class BMPIFunctions():
             total_mismatch_list.extend(mismatches)
         self.logger.info("Done deleting documents.")
         self.logger.info("Found {} mismatches in total".format(len(total_mismatch_list)))
-
+        self.logger.debug("Printing mismatches: {}".format(total_mismatch_list))
     
     
     def reindexBlocksFromScraperData(self):
