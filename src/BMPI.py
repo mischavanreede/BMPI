@@ -212,38 +212,31 @@ def store_block(block_height, block_hash):
         print("An error occured:")
         print("Error message: {}".format(str(ex)))
         sys.exit(1)
+
+
+@cli.command()
+@click.option('--start_height', default=0, show_default=True, type=int, help='Starting height of the blocks that needs to be deleted.')
+@click.option('--end_height', default=0, show_default=True, type=int, help='End height of the last block that needs to be deleted.')
+@click.option('--should_delete', is_flag=True)
+def delete_stored_blocks_between_heights(start_height, end_height, should_delete):
+    '''
+    Deletes stored blocks from index "blocks_from_scrapers" between the specified heights. 
+    The parameter start_height should be smaller then end_height.
+    '''
+    BMPI = BMPIFunctions(config=config, logger=logger)
     
+    try:
+        assert(start_height<=end_height)
+        print("Deleting stored blocks between heights {} and {}".format(start_height, end_height))
+        BMPI.deleteStoredBlocksFromElasticsearch(start_height=start_height, end_height=end_height, should_delete=should_delete)
+        print("Done.")
+        
+    except Exception as ex:
+        print("An error occured:")
+        print("Error message: {}".format(str(ex)))
+        sys.exit(1)
     
-#     conflict_block = {
-# 	'block_hash': '00000000000000000005e180c995220ee5849700593d3606ee0eb26f6de5b5f8', 
-# 	'block_height': 615433, 
-#     'gathered_data': 
-# 		[{  'scraper': 'Blockchain.com API scraper', 
-# 			'block': {
-# 					'block_hash': '00000000000000000005e180c995220ee5849700593d3606ee0eb26f6de5b5f8', 
-# 					'prev_block_hash': '00000000000000000006d2cf7087398582d5091559dfd9a0ee11b1697cf2e5ff', 
-# 					'block_height': 615433, 
-# 					'timestamp': 1580517034000, 
-# 					'coinbase_tx_hash': '62347d788a3f7002302470f378c05ed937107a45bcc338ae6e98d39bd37d9f50', 
-# 					'coinbase_message': '\x03\td\t,mmq\x11km<$gdN\x7f\x08\x10_4\x111\x10\x00\x00\x00\x00\x00\x00\x00p2p-spb.xyz', 
-# 					'payout_addresses': ['1FyCy1NQCjsh58Q4jHZsXjkmBFSSw8HdDT', '17Vq6qwfE1epzsgEfSw81pQX3gXo9ZN4ET', '1F6Nu89P2cNSsg4NtsRqCKZdXwnkKLyNLT', '1GuDnEyYSE3Ra3pMar7311tx5poR5PGXR3', '1J2ubGGF22JeASmEvJuEpjhNwDSo9w3MfF', '17p2MPBzx1KFptsghpsdzw1PQ4sjn9YESF', '1L5SEddaxi114ULkjBAwJsa5zjwuD5628h', '13AkbYufqWwMXqowDXuASnCK9jtYioE1tZ', '1PL1mZiaDCN457KosQLKBSwvD78cegNNj5', '3QPdt4WF8BAGmbAWAcfdZVCyspCdbso8FT', '1971oJQUX2PSBvmCAzYRsozpM5NtyDbznS', '3CYb7DF2uDF9RieEduais6PJSi26e8MMV6', '3JnB3Tet52csJLyBrFQBz7LcUj5QomeRur', '1EkyuYGWWrsXCdnPrTmrqdUtqWR5p1gqHn', '1LDY8TdfQvqVaZ6jUwZJSAWLfAkY8Ayv7E', '1NJP5X22DvjbXsjngvit7ssdfgkgEVWDZF', '16iWWt1uoG8Dct56Cq6eKHFxvGSDha46Lo', '17KacdtR9KHC2q6B9QyyK97wwNGkBJfVVk', 'bc1qupvuq3cyj0w6tajnpgzcgdqaqf3j4yvkukg9tm', '1KzbEWZBty6rBRvFTckuFCxM3cP4gZrcfJ', '16LkY72TujQQcCEhjCPKx64vwetfr3Pukk', '19PYEAP3RYJCzpvffWEFfEry9vSYwV28KN', '13ubFxHFYQ4g4iarjLBKeAwhUh456Yc8zF', '186u9BbtmjeQ7WAYzXw4L8sWzJK4A8bfY5', '12KXi4K7F2YqCvpwCJFUZo3iwPyPd6HYWY', '1Kz5QaUPDtKrj5SqW5tFkn7WZh8LmQaQi4'], 
-# 					'fee_block_reward': 2764810, 
-# 					'total_block_reward': 1252764810}
-# 			}, 
-# 		{	
-# 			'scraper': 'Blockstream.info API scraper', 
-# 			'block': {
-# 					'block_hash': '00000000000000000005e180c995220ee5849700593d3606ee0eb26f6de5b5f8', 
-# 					'prev_block_hash': '00000000000000000006d2cf7087398582d5091559dfd9a0ee11b1697cf2e5ff', 
-# 					'block_height': 615433, 
-# 					'timestamp': 1580517034000, 
-# 					'coinbase_tx_hash': '62347d788a3f7002302470f378c05ed937107a45bcc338ae6e98d39bd37d9f50', 
-# 					'coinbase_message': '\x03\td\t,mmq\x11km<$gdN\x7f\x08\x10_4\x111\x10\x00\x00\x00\x00\x00\x00\x00p2p-spb.xyz', 
-# 					'payout_addresses': ['1FyCy1NQCjsh58Q4jHZsXjkmBFSSw8HdDT', '17Vq6qwfE1epzsgEfSw81pQX3gXo9ZN4ET', '1F6Nu89P2cNSsg4NtsRqCKZdXwnkKLyNLT', '1GuDnEyYSE3Ra3pMar7311tx5poR5PGXR3', '1J2ubGGF22JeASmEvJuEpjhNwDSo9w3MfF', '17p2MPBzx1KFptsghpsdzw1PQ4sjn9YESF', '1L5SEddaxi114ULkjBAwJsa5zjwuD5628h', '13AkbYufqWwMXqowDXuASnCK9jtYioE1tZ', '1PL1mZiaDCN457KosQLKBSwvD78cegNNj5', '3QPdt4WF8BAGmbAWAcfdZVCyspCdbso8FT', '1971oJQUX2PSBvmCAzYRsozpM5NtyDbznS', '3CYb7DF2uDF9RieEduais6PJSi26e8MMV6', '3JnB3Tet52csJLyBrFQBz7LcUj5QomeRur', '1EkyuYGWWrsXCdnPrTmrqdUtqWR5p1gqHn', '1LDY8TdfQvqVaZ6jUwZJSAWLfAkY8Ayv7E', '1NJP5X22DvjbXsjngvit7ssdfgkgEVWDZF', '16iWWt1uoG8Dct56Cq6eKHFxvGSDha46Lo', '17KacdtR9KHC2q6B9QyyK97wwNGkBJfVVk', 'bc1qupvuq3cyj0w6tajnpgzcgdqaqf3j4yvkukg9tm', '1KzbEWZBty6rBRvFTckuFCxM3cP4gZrcfJ', '16LkY72TujQQcCEhjCPKx64vwetfr3Pukk', '19PYEAP3RYJCzpvffWEFfEry9vSYwV28KN', '13ubFxHFYQ4g4iarjLBKeAwhUh456Yc8zF', '186u9BbtmjeQ7WAYzXw4L8sWzJK4A8bfY5', '12KXi4K7F2YqCvpwCJFUZo3iwPyPd6HYWY'], 
-# 					'fee_block_reward': 548853, 
-# 					'total_block_reward': 1250548853}
-# 		}]
-# }
+
 
 @cli.command()
 def print_scrapers():
@@ -254,6 +247,23 @@ def print_scrapers():
     try:
         print("Printing scrapers command issued.")
         BMPI.printScrapers()
+    except Exception as ex:
+        print("An error occured:")
+        print("Error message: {}".format(str(ex)))
+        sys.exit(1)
+
+
+def combine_known_pool_data():
+    '''
+    Fills mining pool data file "combined_data.json" with known mining tags. 
+    Uses tag information from three sources:
+        - blockchain.com's known-pools file
+        - btc.com's known-pools file
+        - known-pools file from Sjors Provoost (BTC core developer)
+    '''
+    BMPI = BMPIFunctions(config=config, logger=logger)
+    try:
+        pass
     except Exception as ex:
         print("An error occured:")
         print("Error message: {}".format(str(ex)))

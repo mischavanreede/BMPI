@@ -397,6 +397,76 @@ class BMPIFunctions():
         #     return        
     
     
+    def combineKnownPoolDataFiles(self):
+        # Keep the weird characters of F2Pool in mind,
+        # maybe change encoding when opening files.
+        self.logger.info("Combining pool data into combined_data.json")
+        self.logger.debug("Loading json file data.")
+        
+        with open('../../known-pools/data/blockchain-com_data.json', mode='r') as blockchain_com_file:
+            blockchain_com_json = json.load(blockchain_com_file)
+            
+        with open('../../known-pools/data/btc-com_data.json', mode='r') as btc_com_file:
+            btc_com_json = json.load(btc_com_file)
+            
+        with open('../../known-pools/data/0xB10c_data.json', mode='r') as B10c_file:
+            B10c_json = json.load(B10c_file)
+            
+        with open('../../known-pools/data/sjors_data.json', mode='r') as sjors_file:
+            sjors_json = json.load(sjors_file)
+            
+        self.logger.debug("File data loaded.")
+        
+        json_data = [blockchain_com_json, btc_com_json, B10c_json, sjors_json]
+        
+        
+        # Not finished
+          
+        pass
+    
+    def deleteStoredBlocksFromElasticsearch(self, start_height, end_height, should_delete=False):
+        '''
+        Deletes blocks between start_height and end_height that are stored in
+        the index {blocks_from_scrapers} in the elasticsearch instance. 
+        '''
+        self.logger.info("Deleting documents between heights {} and {}".format(start_height, end_height))
+        total_mismatch_list = []
+        for height in range(start_height, end_height+1, 1):
+            mismatches = []
+            query = "block_height:{}".format(height)
+            # get stored docs from es
+            results = self.es_controller.query_es(index='blocks_from_scrapers', query=query)
+            self.logger.info("Found {} matches for block at height {}".format(len(results), height))
+            self.logger.debug("Looping over results.")
+            
+            for result in results:
+                doc_id = result["_id"]
+                height_from_doc = result["_source"]["block_height"]
+                self.logger.debug("Handling document: {} at height {}. Height in doc: {}".format(doc_id, height, height_from_doc))
+                if height_from_doc == height:
+                    #height matches, delete doc
+                    self.logger.debug("Height matches.")
+                    doc_type= "_doc"
+                    index_name = "blocks_from_scrapers"
+                    if should_delete:
+                        self.es_controller.delete_doc(index=index_name, doc_type=doc_type, id=doc_id)
+                else:
+                    self.logger.warning("Height doesn't match. Not deleting this document.")
+                    mismatches.append((height, doc_id))
+            self.logger.info("Found {} mismatches in height field for results at height {}.".format(len(mismatches), height))
+            total_mismatch_list.extend(mismatches)
+        self.logger.info("Done deleting documents.")
+        self.logger.info("Found {} mismatches in total".format(len(total_mismatch_list)))
+
+    
+    
+    def reindexBlocksFromScraperData(self):
+        '''
+            Should reindex existing docs in blocks_from_scrapers index.
+        '''
+        pass
+        
+    
     def printScrapers(self):
         
         self.logger.info("Printing scrapers for testing purposes.")

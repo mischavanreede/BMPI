@@ -242,7 +242,13 @@ class ElasticsearchController():
         
         self.logger.error("ES Query failed. Returning None.")
         return None
-
+    
+    def delete_doc(self, index, doc_type, doc_id):
+        self.logger.debug("Deleting doc with id {} from index {}".format(doc_id, index))
+        self.es_connection.delete(index=index, id=doc_id, doc_type=doc_type)
+        self.logger.debug("Doc deleted.")
+        
+        
     def isConnected(self):
         connected = False
         self.logger.debug("Checking if es_connection is connected to an Elasticsearch instance.")

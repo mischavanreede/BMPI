@@ -1,0 +1,4 @@
+blockchain-com_data.json: (Blockchain.com) (24 Mar 2021) (https://raw.githubusercontent.com/blockchain/Blockchain-Known-Pools/f22512ab4af7161029f2fd4b5abe64de7484b474/pools.json) (https://github.com/blockchain/Blockchain-Known-Pools)
+btc-com_data.json: (Btc.com) (17 Aug 2021) (https://raw.githubusercontent.com/btccom/Blockchain-Known-Pools/ae1255f18e0141ec619582d457d1c0d317a99a3b/pools.json) (https://github.com/btccom/Blockchain-Known-Pools)
+sjors_data.json: (BTC core dev) (16 May 2021) (https://raw.githubusercontent.com/Sjors/known-mining-pools/b601e8de52c09e9e0b50436b63f5e1251d4ab9f5/pools.json) (https://github.com/Sjors/known-mining-pools) Read README.md for more information.
+combined_data.json
