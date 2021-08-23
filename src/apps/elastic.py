@@ -238,7 +238,9 @@ class ElasticsearchController():
             #return response['hits']['hits']
             # Complete response
             self.logger.debug("ES Query [{}] on index [{}] sucessful. Returning response object.".format(query, index))
-            return response['hits']['hits']
+            self.logger.debug("Found a total of {} results".format(response.hits.total))
+            #return response['hits']['hits']
+            return s.scan()
         
         self.logger.error("ES Query failed. Returning None.")
         return None
