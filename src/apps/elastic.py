@@ -227,8 +227,14 @@ class ElasticsearchController():
     
     
     def query_es(self, index, query):
+        self.logger.debug("Querying ES instance.")
         search_context = Search(using=self.es_connection, index=index)
         s = search_context.query('query_string', query=query)
+        #count total search results
+        total = s.count()
+        self.logger.debug("Returning up to {} results".format(total))
+        #set upper limit for results
+        s = s[0:total]
         response = s.execute()
         if response.success():
             # Response in panda DF
@@ -239,14 +245,7 @@ class ElasticsearchController():
             # Complete response
             self.logger.debug("ES Query [{}] on index [{}] sucessful. Returning response object.".format(query, index))
             self.logger.debug("Found a total of {} results".format(response.hits.total))
-            #return response['hits']['hits']
-            
-            self.logger.debug("scan type: {}".format(type(s.scan())))
-            self.logger.debug("scan results: {}".format(s.scan()))
-            
-            results = [d.to_dict() for d in s.scan()]
-            self.logger.debug("results to list: {}".format(results))
-            return results
+            return response['hits']['hits']
         
         self.logger.error("ES Query failed. Returning None.")
         return None
