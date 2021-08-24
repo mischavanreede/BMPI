@@ -222,7 +222,7 @@ class BlockchainScraper(RestRequests):
             if ('addr' in output.keys()) and ('value' in output.keys()):
                 total_reward += output['value']
                 
-        if total_reward >= 21*10**6:
+        if total_reward >= Utils.btcToSats(21*10**6):
             self.logger.error("The total reward should not exceed the max number of bitcoins.")
             return -1
         
@@ -275,7 +275,7 @@ class BlockchainScraper(RestRequests):
         payout_addresses = self.__getPayoutAddressesFromCbTx(coinbase_tx)
         #self.logger.debug("Total reward: {}, Payout Addresses: [{}]".format(block_reward, payout_addresses))
         
-        if block['fee'] >= 21*10**6:
+        if block['fee'] >= Utils.btcToSats(21*10**6):
             self.logger.warning("Fee exceeds max number of bitcoins. Setting value to -1.")
             fee = -1
         else:

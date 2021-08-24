@@ -149,7 +149,7 @@ class BlockstreamScraper(RestRequests):
             if ('scriptpubkey_address' in output.keys()) and ('value' in output.keys()):
                 total_reward += output['value']
         
-        if total_reward >= 21*10**6:
+        if total_reward >= Utils.btcToSats(21*10**6):
             self.logger.error("The total reward should not exceed the max number of bitcoins.")
             return -1
         return total_reward 
@@ -214,7 +214,7 @@ class BlockstreamScraper(RestRequests):
         
         fee = block_reward - Utils.getBlockReward(self.__extractBlockHeight(block))
         
-        if fee >= 21*10**6:
+        if fee >= Utils.btcToSats(21*10**6):
             self.logger.warning("Fee exceeds max number of bitcoins. Setting value to -1.")
             fee = -1
         

@@ -445,10 +445,10 @@ class BMPIFunctions():
           
         pass
     
-    def deleteStoredBlocksFromElasticsearch(self, start_height, end_height, should_delete=False):
+    def deleteStoredBlocksFromElasticsearch(self, index, start_height, end_height, should_delete=False):
         '''
         Deletes blocks between start_height and end_height that are stored in
-        the index {blocks_from_scrapers_updated} in the elasticsearch instance. 
+        the provided index in the elasticsearch instance. 
         '''
         self.logger.info("Deleting documents between heights {} and {}".format(start_height, end_height))
         total_mismatch_list = []
@@ -456,7 +456,7 @@ class BMPIFunctions():
             mismatches = []
             query = "block_height:{}".format(height)
             # get stored docs from es
-            results = self.es_controller.query_es(index='blocks_from_scrapers_updated', query=query)
+            results = self.es_controller.query_es(index=index, query=query)
             self.logger.info("Found {} matches for block at height {}".format(len(results), height))
             self.logger.debug("Looping over results.")
             
