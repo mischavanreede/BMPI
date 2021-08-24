@@ -244,7 +244,7 @@ class ElasticsearchController():
   
 
     def query_all_docs(self, index):
-        self.logger.debug("Querying indes {} to obtain all records using .scan()")
+        self.logger.debug("Querying index {} to obtain all records using .scan()".format(index))
         query = "*"
         search_context = Search(using=self.es_connection, index=index)
         s = search_context.query('query_string', query=query)

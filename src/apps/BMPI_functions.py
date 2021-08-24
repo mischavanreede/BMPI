@@ -58,7 +58,7 @@ class BMPIFunctions():
         self.logger.debug("Returned a total of {} results".format(len(results)))
         
         #Keep track of heights, use set to avoid duplicates:
-        height_set = {}
+        height_set = set()
                
         for doc in results:
             height = doc['block_height']
