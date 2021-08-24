@@ -236,7 +236,7 @@ class ElasticsearchController():
         # Set size to total count-1 to delete all but one docs
         if total > 1:
             self.logger.debug("Found {} documents".format(total))
-            single_result = next(s.scan())
+            single_result = next(s.scan()).to_dict()
             # Delete by query
             self.logger.debug("Deleting all documents")
             response = s.delete()
