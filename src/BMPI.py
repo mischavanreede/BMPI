@@ -266,7 +266,7 @@ def delete_stored_blocks_between_heights(start_height, end_height, should_delete
         assert(start_height<=end_height)
         index = "blocks_from_scrapers"
         print("Deleting stored blocks between heights {} and {}".format(start_height, end_height))
-        BMPI.deleteStoredBlocksFromElasticsearch(index=index start_height=start_height, end_height=end_height, should_delete=should_delete)
+        BMPI.deleteStoredBlocksFromElasticsearch(index=index, start_height=start_height, end_height=end_height, should_delete=should_delete)
         print("Done.")
         
     except Exception as ex:
