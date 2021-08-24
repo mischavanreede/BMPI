@@ -226,6 +226,26 @@ class ElasticsearchController():
         return is_stored
     
     
+    
+    
+    def remove_all_but_one_by_query(self, index, query):
+        self.logger.debug("Deleting duplicate records from index {} that match with the following query: {}".format(index, query))
+        
+        search_context = Search(using=self.es_connection, index=index)
+        s = search_context.query('query_string', query=query)
+        # Count all results
+        total = s.count
+        # Set size to total count-1 to delete all but one docs
+        s = s[0:total-1]       
+        # Delete by query
+        response = s.delete()
+        if response.success():
+            self.logger.info("Documents successfully deleted.")
+        else:
+            self.logger.info("Something wen't wrong.")
+
+        
+    
     def query_es(self, index, query):
         self.logger.debug("Querying ES instance.")
         search_context = Search(using=self.es_connection, index=index)
@@ -251,11 +271,30 @@ class ElasticsearchController():
         return None
     
     def delete_doc(self, index, doc_type, doc_id):
+        """
+        Delete document with doc_id from specified index.
+
+        """
         self.logger.debug("Deleting doc with id {} from index {}".format(doc_id, index))
         self.es_connection.delete(index=index, id=doc_id, doc_type=doc_type)
         self.logger.debug("Doc deleted.")
+    
+    
+    def reindex_data(self, source_index, dest_index):
+        assert(self.__index_exists(source_index) and self.__index_exists(dest_index))
+        self.logger.info("Reindexing data from index [{}] to [{}]".format(source_index, dest_index))
+        result = self.es_connection.reindex({
+            "source": {"index": source_index},
+            "dest": {"index": dest_index}
+            }, wait_for_completion=True, request_timeout=300)
+        self.logger.debug("Result:  {}".format(result))
         
-        
+        if result['total'] and result['took'] and not result['timed_out']:
+            self.logger.debug("Seems reindex was successfull. You can now delete index [{}]".format(source_index))
+        else:
+            self.logger.debug("Something went wrong.")
+            
+       
     def isConnected(self):
         connected = False
         self.logger.debug("Checking if es_connection is connected to an Elasticsearch instance.")
@@ -271,7 +310,7 @@ class ElasticsearchController():
 
 class ElasticsearchIndexes():
     
-    INDEX_NAMES = ["blocks_from_scrapers", "skipped_blocks", "api_block_data_conflicts"]
+    INDEX_NAMES = ["blocks_from_scrapers", "blocks_from_scrapers_updated", "skipped_blocks", "api_block_data_conflicts"]
     
     SETTINGS = {
             "settings" : {
@@ -295,6 +334,21 @@ class ElasticsearchIndexes():
                     "payout_addresses": {"type": "text"},
                     "fee_block_reward": {"type": "integer"}, 
                     "total_block_reward": {"type": "integer"}
+                    } 
+                }
+            },
+        "blocks_from_scrapers_updated": {
+            "mappings": {
+                "properties": {
+                    "block_hash": {"type": "text"},
+                    "prev_block_hash": {"type": "text"},
+                    "block_height": {"type": "integer"},
+                    "timestamp" : {"type": "date"},
+                    "coinbase_tx_hash": {"type": "text"},
+                    "coinbase_message": {"type": "text"},
+                    "payout_addresses": {"type": "text"},
+                    "fee_block_reward": {"type": "long"}, 
+                    "total_block_reward": {"type": "long"}
                     } 
                 }
             },

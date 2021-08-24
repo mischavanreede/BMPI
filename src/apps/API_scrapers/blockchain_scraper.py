@@ -221,6 +221,11 @@ class BlockchainScraper(RestRequests):
         for output in coinbase_tx['out']: #if there is a payout addres and payout value
             if ('addr' in output.keys()) and ('value' in output.keys()):
                 total_reward += output['value']
+                
+        if total_reward >= 21*10**6:
+            self.logger.error("The total reward should not exceed the max number of bitcoins.")
+            return -1
+        
         return total_reward        
         
     
@@ -269,7 +274,13 @@ class BlockchainScraper(RestRequests):
         block_reward = self.__getBlockReward(coinbase_tx)
         payout_addresses = self.__getPayoutAddressesFromCbTx(coinbase_tx)
         #self.logger.debug("Total reward: {}, Payout Addresses: [{}]".format(block_reward, payout_addresses))
-
+        
+        if block['fee'] >= 21*10**6:
+            self.logger.warning("Fee exceeds max number of bitcoins. Setting value to -1.")
+            fee = -1
+        else:
+            fee = block['fee']
+            
         block_information = {
             "block_hash": block_hash,
             "prev_block_hash": self.__extractPrevBlockHash(block),
@@ -278,7 +289,7 @@ class BlockchainScraper(RestRequests):
             "coinbase_tx_hash": coinbase_tx['hash'],
             "coinbase_message": coinbase_message,
             "payout_addresses": payout_addresses,
-            "fee_block_reward": block['fee'], 
+            "fee_block_reward": fee, 
             "total_block_reward": block_reward
             }
         self.logger.debug("Block information succesfully obtained from the Blockchain.info API.")

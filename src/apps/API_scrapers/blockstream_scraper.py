@@ -148,6 +148,10 @@ class BlockstreamScraper(RestRequests):
         for output in coinbase_tx['vout']: #if there is a payout addres and payout value
             if ('scriptpubkey_address' in output.keys()) and ('value' in output.keys()):
                 total_reward += output['value']
+        
+        if total_reward >= 21*10**6:
+            self.logger.error("The total reward should not exceed the max number of bitcoins.")
+            return -1
         return total_reward 
                 
     def getBlockInformation(self, block_hash):
@@ -207,7 +211,13 @@ class BlockstreamScraper(RestRequests):
         payout_addresses = self.__getPayoutAddressesFromCbTx(coinbase_tx)#coinbase_tx['vout'][0]['scriptpubkey_address']
         block_reward = self.__getBlockReward(coinbase_tx)
         #self.logger.info("Total reward: {}, Payout Addresses: [{}]".format(block_reward, payout_addresses))
-
+        
+        fee = block_reward - Utils.getBlockReward(self.__extractBlockHeight(block))
+        
+        if fee >= 21*10**6:
+            self.logger.warning("Fee exceeds max number of bitcoins. Setting value to -1.")
+            fee = -1
+        
         block_information = {
             "block_hash": block_hash,
             "prev_block_hash": self.__extractPrevBlockHash(block),
@@ -216,7 +226,7 @@ class BlockstreamScraper(RestRequests):
             "coinbase_tx_hash": coinbase_tx['txid'],
             "coinbase_message": coinbase_message,
             "payout_addresses": payout_addresses,
-            "fee_block_reward": block_reward - Utils.getBlockReward(self.__extractBlockHeight(block)), 
+            "fee_block_reward": fee, 
             "total_block_reward": block_reward
             }
         self.logger.debug("Block information succesfully obtained from the Blockstream.info API.")

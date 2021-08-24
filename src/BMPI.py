@@ -192,6 +192,43 @@ def delete_stored_data(index):
         print("An error occured:")
         print("Error message: {}".format(str(ex)))
         sys.exit(1)
+        
+@cli.command()
+@click.option('--index', default=None, show_default=True, type=str, help='The index in which the document is stored.')
+@click.option('--doc_id', default=None, show_default=True, type=str, help='The id of the document.')        
+def delete_doc_by_id(index, doc_id):
+    '''
+    Deletes a document from an index specified by its document id.
+    '''
+    BMPI = BMPIFunctions(config=config, logger=logger)
+    
+    try:
+        print("Deleting document {} from index {}".format(doc_id, index))
+        BMPI.deleteDocByID(index, doc_id)
+        print("Done.")
+        
+    except Exception as ex:
+        print("An error occured:")
+        print("Error message: {}".format(str(ex)))
+        sys.exit(1)
+        
+@cli.command()
+def remove_duplicate_api_conflicts():
+    '''
+    Removes duplicates from the API conflicts index based on the block_height
+    of the stored documents. Keeps one record stored.
+    '''
+    BMPI = BMPIFunctions(config=config, logger=logger)
+    
+    try:
+        print("Deleting duplicates from the api_conflicts index")
+        BMPI.remove_duplicate_api_conflicts()
+        print("Done.")
+        
+    except Exception as ex:
+        print("An error occured:")
+        print("Error message: {}".format(str(ex)))
+        sys.exit(1)
 
 
 @cli.command()
@@ -247,6 +284,24 @@ def print_scrapers():
     try:
         print("Printing scrapers command issued.")
         BMPI.printScrapers()
+    except Exception as ex:
+        print("An error occured:")
+        print("Error message: {}".format(str(ex)))
+        sys.exit(1)
+
+
+@cli.command()
+@click.confirmation_option(prompt='Are you sure you want to reindex the data to a new index?')
+def reindex_blocks():
+    '''
+    Moving block data to new block index.
+    '''
+    BMPI = BMPIFunctions(config=config, logger=logger)
+    try:
+        print("Moving block data to updated index.")
+        BMPI.reindexBlocksFromScraperData()
+        print("Done.")
+        
     except Exception as ex:
         print("An error occured:")
         print("Error message: {}".format(str(ex)))

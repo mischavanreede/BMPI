@@ -226,8 +226,6 @@ class ScraperController:
             # All blocks are equal, so returning the first one
             self.logger.debug("Obtained blocks are equal.")
             block_to_return = block_info_list[0]
-            #self.logger.debug("Attributing mining pool to block: {}".format(block_hash))
-            #self.attributePoolNameToBlock(block_to_return)
             return {"status": "success",
                     "block": block_to_return}
         
@@ -237,11 +235,9 @@ class ScraperController:
 
             prev_hashes = []
             for scraper, block in zip(self.scrapers, block_info_list):
-                #self.attributePoolNameToBlock(block)
                 prev_hashes.append(block['prev_block_hash'])
                  
             conflict_entry = self.__constructConflictingApiInformationDataEntry(block_hash, block_info_list)
-            #self.__addConflictingData(conflict_type="conflicting_API_information", conflict_entry=conflict_entry)
                 
             if self.all_equal(prev_hashes):
                 self.logger.info("Previous hashes are equal.")

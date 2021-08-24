@@ -40,16 +40,6 @@ class Utils():
        
        WORKS UNTIL APPROXIMATELY 2036.
 
-       Parameters
-       ----------
-       block_height : int
-           DESCRIPTION.
-
-       Returns
-       -------
-       int
-           Block reward for specified height.
-
        """
        
        if block_height < 210000:

@@ -48,8 +48,41 @@ class BMPIFunctions():
         for index_name in ElasticsearchIndexes.INDEX_NAMES:
             self.es_controller.delete_index(index_name)
         self.logger.info("All data removed.")
-        
     
+        
+    def remove_duplicate_api_conflicts(self):
+        api_index = "api_block_data_conflicts"
+        
+        # match_all_query = {
+        #     "query": {
+        #         "match_all": {}
+        #     }
+        # }
+        #empty query should return all results
+        match_all_query = ""
+        #gather list of all blockheights
+        
+        results = self.es_controller.query_es(index=api_index, query=match_all_query)
+        self.logger.debug("Returned a total of {} results".format(len(results)))
+        
+        #Keep track of heights, use set to avoid duplicates:
+        height_set = {}
+               
+        for hit in results:
+            doc = hit['_source']
+            height = doc['block_height']
+            height_set.add(height)
+        
+        self.logger.debug('Found a total of {} unique heights'.format(len(height_set)))
+        
+        for height in height_set:
+        #for each blockheight
+            self.logger.debug("Handling height: {}".format(height))
+            # construct query
+            height_query = "block_height:{}".format(height)
+            # delete duplicate method from elastic.py
+            self.es_controller.remove_all_but_one_by_query(index=api_index, query=height_query)
+        self.logger.debug("Done deleting duplicate api conflicts.")
     
     def removeStoredElasticsearchData(self, index):
         self.logger.info("Removing the all data in index: {}".format(index))
@@ -136,9 +169,6 @@ class BMPIFunctions():
             else: # No exception found and some result is returned.
                 succesfully_gathered_block = (result['status'] == "success")
                 conflict_encountered = (result['status'] == "conflict")
-                
-            # finally:
-            #     #code that is run after each try
             
             if succesfully_gathered_block:
                 # Set variables (block_hash and block_height) for next iteration of outer while
@@ -185,7 +215,7 @@ class BMPIFunctions():
 
     def performInterimBlockStorage(self):
         # Store succesfully gathered blocks
-        if self.es_controller.bulk_store(records=self.block_list, index_name="blocks_from_scrapers"):
+        if self.es_controller.bulk_store(records=self.block_list, index_name="blocks_from_scrapers_updated"):
             self.logger.info("Succesfully stored last {} blocks".format(len(self.block_list)))
             self.block_list.clear()
         else:
@@ -427,7 +457,7 @@ class BMPIFunctions():
     def deleteStoredBlocksFromElasticsearch(self, start_height, end_height, should_delete=False):
         '''
         Deletes blocks between start_height and end_height that are stored in
-        the index {blocks_from_scrapers} in the elasticsearch instance. 
+        the index {blocks_from_scrapers_updated} in the elasticsearch instance. 
         '''
         self.logger.info("Deleting documents between heights {} and {}".format(start_height, end_height))
         total_mismatch_list = []
@@ -435,7 +465,7 @@ class BMPIFunctions():
             mismatches = []
             query = "block_height:{}".format(height)
             # get stored docs from es
-            results = self.es_controller.query_es(index='blocks_from_scrapers', query=query)
+            results = self.es_controller.query_es(index='blocks_from_scrapers_updated', query=query)
             self.logger.info("Found {} matches for block at height {}".format(len(results), height))
             self.logger.debug("Looping over results.")
             
@@ -447,7 +477,7 @@ class BMPIFunctions():
                     #height matches, delete doc
                     self.logger.debug("Height matches.")
                     doc_type= "_doc"
-                    index_name = "blocks_from_scrapers"
+                    index_name = "blocks_from_scrapers_updated"
                     if should_delete:
                         self.es_controller.delete_doc(index=index_name, doc_type=doc_type, doc_id=doc_id)
                 else:
@@ -462,19 +492,31 @@ class BMPIFunctions():
     
     def reindexBlocksFromScraperData(self):
         '''
-            Should reindex existing docs in blocks_from_scrapers index.
+        Reindex existing block data from blocks_from_scrapers to updated
+        blocks_from_scrapers_updated index.
         '''
-        pass
         
-    
+        old_index = "blocks_from_scrapers"
+        new_index = "blocks_from_scrapers_updated"
+        
+        self.logger.info("Reindexing data from {} to {}".format(old_index, new_index))
+        self.es_controller.reindex_data(source_index=old_index, dest_index=new_index)
+        self.logger.info("Reindexing complete.")
+        
+        
     def printScrapers(self):
-        
         self.logger.info("Printing scrapers for testing purposes.")
         for scraper in self.scraper_controller.scrapers:
             self.logger.debug("Found scraper: {}".format(repr(scraper)))
             print(repr(scraper))
             print("Done.")
             self.logger.debug("Done printing scrapers.")
+        
+    
+    def deleteDocByID(self, index, doc_id):
+        self.logger.info("Deleting document [{}] from index [{}]".format(doc_id, index))
+        self.es_controller.delete_doc(index=index, doc_type="_doc", doc_id=doc_id)
+        self.logger.info("Document deleted.")
         
         
     
