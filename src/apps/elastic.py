@@ -234,16 +234,19 @@ class ElasticsearchController():
         # Count all results
         total = s.count()
         # Set size to total count-1 to delete all but one docs
-        max_size = total-1
-        self.logger.debug("Deleting {} documents".format(max_size))
-        s = s[0:max_size]       
-        # Delete by query
-        self.logger.debug("Deleting...")
-        response = s.delete()
-        if response.success():
-            self.logger.info("Documents successfully deleted.")
+        if total > 1:
+            max_size = total-1
+            self.logger.debug("Deleting {} documents".format(max_size))
+            s = s[0:max_size]       
+            # Delete by query
+            self.logger.debug("Deleting...")
+            response = s.delete()
+            if response.success():
+                self.logger.info("Documents successfully deleted.")
+            else:
+                self.logger.info("Something wen't wrong.")
         else:
-            self.logger.info("Something wen't wrong.")
+            self.logger.debug("Only 1 document returned with query: \"{}\"".format(query))
   
 
     def query_all_docs(self, index):
