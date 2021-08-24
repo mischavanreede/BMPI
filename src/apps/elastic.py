@@ -240,12 +240,11 @@ class ElasticsearchController():
             # Delete by query
             self.logger.debug("Deleting all documents")
             response = s.delete()
-            if response.success():
-                self.logger.info("Documents successfully deleted.")
-                self.logger.debug("Reuploading single document.")
-                self.store(single_result, index)
-            else:
-                self.logger.info("Something wen't wrong.")
+            self.logger.debug("Delete response: {}".format(response))
+            self.logger.info("Documents successfully deleted.")
+            self.logger.debug("Reuploading single document.")
+            self.store(single_result, index)
+            self.logger.debug("Done storing document.")
         else:
             self.logger.debug("Only 1 document returned with query: \"{}\"".format(query))
   
