@@ -227,12 +227,12 @@ class ElasticsearchController():
     
     
     def remove_all_but_one_by_query(self, index, query):
-        self.logger.debug("Deleting duplicate records from index {} that match with the following query: {}".format(index, query))
+        self.logger.debug("Deleting duplicate records from index {} that match with the following query: \"{}\"".format(index, query))
         
         search_context = Search(using=self.es_connection, index=index)
         s = search_context.query('query_string', query=query)
         # Count all results
-        total = s.count
+        total = s.count()
         # Set size to total count-1 to delete all but one docs
         max_size = total-1
         s = s[0:max_size]       
