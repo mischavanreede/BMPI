@@ -234,7 +234,8 @@ class ElasticsearchController():
         # Count all results
         total = s.count
         # Set size to total count-1 to delete all but one docs
-        s = s[0:total-1]       
+        max_size = total-1
+        s = s[0:max_size]       
         # Delete by query
         response = s.delete()
         if response.success():
