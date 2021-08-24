@@ -58,8 +58,8 @@ class BMPIFunctions():
         #         "match_all": {}
         #     }
         # }
-        #empty query should return all results
-        match_all_query = ""
+        # Wildcard query should return all results
+        match_all_query = "*"
         #gather list of all blockheights
         
         results = self.es_controller.query_es(index=api_index, query=match_all_query)

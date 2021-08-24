@@ -263,7 +263,7 @@ class ElasticsearchController():
             # Response in list
             #return response['hits']['hits']
             # Complete response
-            self.logger.debug("ES Query [{}] on index [{}] sucessful. Returning response object.".format(query, index))
+            self.logger.debug("ES Query [{}] on index [{}] successful. Returning response object.".format(query, index))
             self.logger.debug("Found a total of {} results".format(response.hits.total))
             return response['hits']['hits']
         
