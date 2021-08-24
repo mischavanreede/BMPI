@@ -235,8 +235,10 @@ class ElasticsearchController():
         total = s.count()
         # Set size to total count-1 to delete all but one docs
         max_size = total-1
+        self.logger.debug("Deleting {} documents".format(max_size))
         s = s[0:max_size]       
         # Delete by query
+        self.logger.debug("Deleting...")
         response = s.delete()
         if response.success():
             self.logger.info("Documents successfully deleted.")
