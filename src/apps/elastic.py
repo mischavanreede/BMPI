@@ -226,8 +226,6 @@ class ElasticsearchController():
         return is_stored
     
     
-    
-    
     def remove_all_but_one_by_query(self, index, query):
         self.logger.debug("Deleting duplicate records from index {} that match with the following query: {}".format(index, query))
         
@@ -243,8 +241,16 @@ class ElasticsearchController():
             self.logger.info("Documents successfully deleted.")
         else:
             self.logger.info("Something wen't wrong.")
+  
 
-        
+    def query_all_docs(self, index):
+        self.logger.debug("Querying indes {} to obtain all records using .scan()")
+        query = "*"
+        search_context = Search(using=self.es_connection, index=index)
+        s = search_context.query('query_string', query=query)
+        self.logger.debug("Found a total of {} records".format(s.count()))
+        results = [doc.to_dict() for doc in s.scan()]
+        return results
     
     def query_es(self, index, query):
         self.logger.debug("Querying ES instance.")

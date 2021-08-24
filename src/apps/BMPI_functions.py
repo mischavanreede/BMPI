@@ -52,24 +52,15 @@ class BMPIFunctions():
         
     def remove_duplicate_api_conflicts(self):
         api_index = "api_block_data_conflicts"
-        
-        # match_all_query = {
-        #     "query": {
-        #         "match_all": {}
-        #     }
-        # }
-        # Wildcard query should return all results
-        match_all_query = "*"
+        self.logger.debug("Removing duplicates from {}".format(api_index))
         #gather list of all blockheights
-        
-        results = self.es_controller.query_es(index=api_index, query=match_all_query)
+        results = self.es_controller.query_all_docs(index=api_index)
         self.logger.debug("Returned a total of {} results".format(len(results)))
         
         #Keep track of heights, use set to avoid duplicates:
         height_set = {}
                
-        for hit in results:
-            doc = hit['_source']
+        for doc in results:
             height = doc['block_height']
             height_set.add(height)
         
