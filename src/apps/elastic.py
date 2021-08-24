@@ -237,7 +237,7 @@ class ElasticsearchController():
         if total > 1:
             max_size = total-1
             self.logger.debug("Deleting {} documents".format(max_size))
-            s = s[0:max_size]       
+            s = s[max_size]       
             # Delete by query
             self.logger.debug("Deleting...")
             response = s.delete()
