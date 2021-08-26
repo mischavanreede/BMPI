@@ -35,6 +35,7 @@ import sys
 
 # project imports
 from apps.BMPI_functions import BMPIFunctions
+from apps.utils import Utils
 
 
    
@@ -308,18 +309,20 @@ def reindex_blocks():
         print("Error message: {}".format(str(ex)))
         sys.exit(1)
 
-
+@cli.command()
 def combine_known_pool_data():
     '''
     Fills mining pool data file "combined_data.json" with known mining tags. 
     Uses tag information from three sources:
         - blockchain.com's known-pools file
         - btc.com's known-pools file
+        - known-pools file from 0xB10C (BTC core developer)
         - known-pools file from Sjors Provoost (BTC core developer)
     '''
-    BMPI = BMPIFunctions(config=config, logger=logger)
     try:
-        pass
+        print("Combining known-pools data files.")
+        Utils.combineKnownPoolDataFiles(logger=logger)
+        print("Done.")
     except Exception as ex:
         print("An error occured:")
         print("Error message: {}".format(str(ex)))

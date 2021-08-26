@@ -241,61 +241,81 @@ class Utils():
             print('Elapsed time: {}'.format(end-start))
             return result
         return wrapper
-   
-    # def updateCoinbaseTags():
-    #     #open new file
-    #     new_file = open(file='../pools/pool_data.json', mode='r+' , encoding='utf-8')
-    #     new_file_data = json.load(new_file)
-    #     #open old file
-    #     old_file = open(file='../pools/old_pool_data.json', mode='r' , encoding='utf-8')
-    #     old_file_data = json.load(old_file)
+    
+    def combineKnownPoolDataFiles(logger):
+        # Keep the weird characters of F2Pool in mind,
+        # maybe change encoding when opening files.
+        logger.info("Combining pool data into combined_data.json")
+        logger.debug("Loading json file data.")
+        logger.debug("Current path: {}".format(Utils.getCurrentPath()))
         
-    #     # empty coinbase tags
-    #     for name in new_file_data['mining_pools']:
-    #         #set coinbase tag to empty list
-    #         new_file_data['mining_pools'][name]['coinbase_tags'] = []
+        cur_path = os.path.dirname(__file__)
         
-    #     # Fill coinbase list of new file with tags
-    #     for coinbase_tag in old_file_data['coinbase_tags']:
-    #         pool_name = old_file_data['coinbase_tags'][coinbase_tag]['name']
-    #         new_file_data['mining_pools'][pool_name]['coinbase_tags'].append(coinbase_tag)
-        
-    #     # set file pointer to start of file
-    #     new_file.seek(0)
-    #     # write to data to new file
-    #     json.dump(new_file_data, new_file, indent=4)
-    #     #close files
-    #     new_file.close()
-    #     old_file.close()
+        with open(cur_path + '/../../known-pools/data/blockchain-com.json', mode='r', encoding='utf-8') as blockchain_com_file:
+            blockchain_com_json = json.load(blockchain_com_file)
+            
+        with open(cur_path + '/../../known-pools/data/btc-com.json', mode='r', encoding='utf-8') as btc_com_file:
+            btc_com_json = json.load(btc_com_file)
+            
+        with open(cur_path + '/../../known-pools/data/0xB10c.json', mode='r', encoding='utf-8') as B10c_file:
+            B10c_json = json.load(B10c_file)
+            
+        with open(cur_path + '/../../known-pools/data/sjors.json', mode='r', encoding='utf-8') as sjors_file:
+            sjors_json = json.load(sjors_file)
+            
+        logger.debug("File data loaded.")
+        json_data = [blockchain_com_json, btc_com_json, B10c_json, sjors_json]
+        my_json = {
+            "coinbase_tags" : {
+                },
+            "payout_addresses" : {
+                }
+            }
+        # Add coinbase tags to my_json
+        logger.debug("Adding coinbase tags.")
+        for data in json_data:
+            for cb_tag in data['coinbase_tags']:
 
+                if cb_tag not in my_json['coinbase_tags']:
+                    my_json['coinbase_tags'][cb_tag] = data['coinbase_tags'][cb_tag]
+                else:
+                    #tag is already in my_json, check if pool name matches
+                    name1 = my_json['coinbase_tags'][cb_tag]['name']
+                    name2 = data['coinbase_tags'][cb_tag]['name']
+                    if not name1 == name2:
+                        #if the name is not equal
+                        logger.error("Couldn't match names for tag: {}".format(cb_tag))
+                        logger.info("Name 1: {} , Name 2: {}".format(name1, name2))
+                        # Remove entry from my_json
+                        my_json['coinbase_tags'].pop(cb_tag)
+                    #Else if they match, continue
         
-    # def invertPoolDataJson():
-    #     f = open('../pools/pool_data.json', encoding='utf-8')
-    #     json_file = json.load(f)
+        logger.info("Finished adding coinbase tags.")
+       
+        # Add addresses to my_json if they appear in all files
+        logger.info("Adding pool addresses") 
+        addr_intersection = [addr for addr in json_data[0]['payout_addresses'] if all([addr in d['payout_addresses'] for d in json_data[1:]])]
+           
+        logger.info("Found {} matching addresses".format(len(addr_intersection)))
+        logger.info("Found the following addresses in every jsonfile: {}".format(addr_intersection))
+        # Check if pool names are equal
+        for addr in addr_intersection:
+            pool_names = []
+            for data in json_data:
+                pool_names.append(data['payout_addresses'][addr]['name'])
+            # If names are equal add record to my_json
+            if len(set(pool_names)) == 1:
+                my_json['payout_addresses'][addr] = json_data[0]['payout_addresses'][addr]
+            else:
+                logger.error("Found multiple pool names for addr: {}".format(addr))
+                logger.info("Names: {}".format(pool_names))       
+        logger.info("Finished adding pool payout addresses.")
         
-    #     data = {"mining_pools": {}}        
-        
-    #     for coinbase_tag in json_file['coinbase_tags']:
-    #         pool_name = json_file['coinbase_tags'][coinbase_tag]['name']
-    #         pool_addresses = []            
-            
-    #         for btc_address in json_file['payout_addresses']:
-    #             if pool_name == json_file['payout_addresses'][btc_address]['name']:
-    #                 pool_addresses.append(btc_address)
-            
-    #         entry = {
-    #             pool_name: {
-    #                 "coinbase_tag": coinbase_tag,
-    #                 "link": json_file['coinbase_tags'][coinbase_tag]['link'],
-    #                 "pool_addresses": pool_addresses
-    #                 } 
-    #             }
-    #         data['mining_pools'].update(entry)        
-    #     f.close()
-    #     with open('../pools/new_pool_data.json', 'w') as outfile:
-    #         json.dump(data, outfile, indent=4, sort_keys=True)
-        
-    #     print("Inverting json complete.")
+        logger.info("Writing data to file.")
+        with open(cur_path + '/../../known-pools/pools.json', mode='w', encoding='utf-8') as outfile:
+            json.dump(my_json, outfile, sort_keys=True, indent=4)
+        logger.info("Done writing data to file.")
+   
         
         
         

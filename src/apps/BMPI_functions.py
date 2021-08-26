@@ -416,34 +416,8 @@ class BMPIFunctions():
         #     self.logger.debug("Block attributed to: Unknown")
         #     block['pool_name'] = "Unknown"
         #     return        
-    
-    
-    def combineKnownPoolDataFiles(self):
-        # Keep the weird characters of F2Pool in mind,
-        # maybe change encoding when opening files.
-        self.logger.info("Combining pool data into combined_data.json")
-        self.logger.debug("Loading json file data.")
-        
-        with open('../../known-pools/data/blockchain-com_data.json', mode='r') as blockchain_com_file:
-            blockchain_com_json = json.load(blockchain_com_file)
             
-        with open('../../known-pools/data/btc-com_data.json', mode='r') as btc_com_file:
-            btc_com_json = json.load(btc_com_file)
-            
-        with open('../../known-pools/data/0xB10c_data.json', mode='r') as B10c_file:
-            B10c_json = json.load(B10c_file)
-            
-        with open('../../known-pools/data/sjors_data.json', mode='r') as sjors_file:
-            sjors_json = json.load(sjors_file)
-            
-        self.logger.debug("File data loaded.")
-        
-        json_data = [blockchain_com_json, btc_com_json, B10c_json, sjors_json]
-        
-        
-        # Not finished
-          
-        pass
+
     
     def deleteStoredBlocksFromElasticsearch(self, index, start_height, end_height, should_delete=False):
         '''
