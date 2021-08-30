@@ -101,7 +101,7 @@ class BlockchainScraper(RestRequests):
         after which it calls getBlock(hash_value) to obtain the full block. This is because 
         the latest block returns a BasicBlock with limited information instead of a full Block structure.
         
-        TODO check for orphan blocks at the latest block height
+        TODO: Only add payout address in __getPayoutAddressesFromCbTx() when value in that output != 0
         
         Returns
         -------
