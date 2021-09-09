@@ -6,7 +6,7 @@
 """
 
 import json
-import Utils
+from .utils import Utils
 
 class BlockAnalyser():
     
@@ -18,13 +18,12 @@ class BlockAnalyser():
         # Load json file data into memory
         
         # Known pools data base path
-        base_path = "../../known-pools/"
+        base_path = "../known-pools/"
     
         # External known pools file data, sources are in known-pools/sources
         B10C_known_pools_file_path =            base_path + "data/0xB10C.json"
         blockchain_com_known_pools_file_path =  base_path + "data/blockchain-com.json"
         btc_com_known_pools_file_path =         base_path + "data/btc-com.json"
-        sjors_known_pools_file_path =           base_path + "data/sjors.json"
     
         # My pool data1
         my_known_pools_file_path =  base_path + "pools.json"
@@ -41,28 +40,24 @@ class BlockAnalyser():
                 "name": "BTC.com",
                 "data": self.__load_json(btc_com_known_pools_file_path)
             }
-        sjors_data = {
-                "name": "Sjors Provoost",
-                "data": self.__load_json(sjors_known_pools_file_path)
-            }
         my_pool_data = {
                 "name": "My Data",
                 "data": self.__load_json(my_known_pools_file_path)
             }
         
         # All data from external sources in a list
-        self.external_pool_data_list = [B10C_data, blockchain_data, btc_data, sjors_data]
+        self.external_pool_data_list = [B10C_data, blockchain_data, btc_data]
         self.B10C_data = B10C_data
         self.blockchain_data = blockchain_data
         self.btc_data = btc_data
-        self.sjors_data = sjors_data
+
         # My known-pools data kept in seperate variable for updating.
         self.my_pool_data = my_pool_data
         
     def __load_json(self, file_path):
         self.logger.debug("Trying to load [{}] file into memory.".format(file_path))  
         try:
-            with open(file_path, mode='r') as file:
+            with open(file_path, mode='r', encoding="utf8") as file:
                 data = json.load(file)
             self.logger.debug("File loaded, returning data.")
             return data
@@ -124,14 +119,18 @@ class BlockAnalyser():
         found_address_match = False
         found_tag_match = False
         
+        self.logger.debug("Finding pool name using data from: {}".format(pool_data['name']))
+        pool_data = pool_data['data']
+        
         # Find matches
+        self.logger.debug("Looking for payout address matches.")
         for payout_address in payout_addresses:
-            
             if payout_address in pool_data['payout_addresses']:
                 found_address_match = True
                 pool_name = pool_data["payout_addresses"][payout_address]["name"]
                 payout_address_matches.add(pool_name)
         
+        self.logger.debug("Looking for coinbase tag matches.")
         for tag in pool_data["coinbase_tags"]:
             
             if tag in coinbase_message:
@@ -142,12 +141,14 @@ class BlockAnalyser():
         # Handle matches
         if not found_address_match and not found_tag_match:
             # No match found, pool name "Unknown"
+            self.logger.debug("Found no matches.")
             pool_name_attribution["pool_name"] = "Unknown"
             pool_name_attribution["payout_addresses_matches"] = []
             pool_name_attribution["coinbase_tag_matches"] = []
             return pool_name_attribution
                
         if found_address_match and not found_tag_match:
+            self.logger.debug("Found payout address match(es), found no tag matches")
             name_matches = len(payout_address_matches)
             if name_matches == 1:
                 pool_name_attribution["pool_name"] = list(payout_address_matches)[0]
@@ -163,6 +164,7 @@ class BlockAnalyser():
             return pool_name_attribution
         
         if not found_address_match and found_tag_match:
+            self.logger.debug("Found no payout address matches, found tag match(es)")
             name_matches = len(coinbase_tag_matches)
             name = list(coinbase_tag_matches)[0]
             if name_matches == 1:
@@ -188,6 +190,7 @@ class BlockAnalyser():
             return pool_name_attribution
         
         if found_address_match and found_tag_match:
+            self.logger.debug("Found payout address and tag match(es)")
             address_matches = len(payout_address_matches)
             #tag_matches = len(payout_address_matches)
             if address_matches == 1:
@@ -201,97 +204,10 @@ class BlockAnalyser():
                 pool_name_attribution["payout_addresses_matches"] = list(payout_address_matches)
                 pool_name_attribution["coinbase_tag_matches"] = list(coinbase_tag_matches)
             return pool_name_attribution
-
-        # First check for payout address match
-        
-        
-        #     pool_data_updated = False
-        #     explicitly_find_tag_match = True
+     
     
-        #     payout_address = block['pool_address']
-        #     coinbase_message = block['coinbase_message']
-            
-            
-            
-        #     # TODO: combine various pool_data sources
-        #     # TODO: implement check for multiple output addresses
-        #     # TODO: add logger info
-            
-        #     if payout_address in self.pool_data_json['payout_addresses']:
-        #         address_match_pool_name = self.pool_data_json['payout_addresses'][payout_address]['name']
-        #         self.logger.debug("Found a matching payout address (match={})".format(address_match_pool_name))
-        #         self.logger.debug("Payout address = {}".format(payout_address))
-                            
-        #         # Check if the miner uses it's pool tag
-        #         if explicitly_find_tag_match:
-        #             for coinbase_tag, pool_info in self.pool_data_json['coinbase_tags'].items():
-        #                 if coinbase_tag in coinbase_message and address_match_pool_name == pool_info['name']:
-        #                     # pool_name is the same for address and tag match "everything is ok"
-        #                     self.logger.debug("Block attributed to: {}".format(address_match_pool_name))
-        #                     block['pool_name'] = address_match_pool_name
-        #                     return
-                        
-        #                 elif coinbase_tag in coinbase_message and address_match_pool_name != pool_info['name']:
-        #                     self.conflict_encoutered = True
-        #                     tag_match_pool_name = pool_info['name']
-        #                     self.logger.info("Naming conflict occured in attributing pool name to block: {}".format(block['block_hash']))
-        #                     self.logger.debug("Coinbase message = {}".format(block['coinbase_message']))
-        #                     self.logger.info("Found conflicting matches for pool_names. Please inspect the logs")
-        #                     self.logger.debug("Found matches; address_match_pool_name={} , tag_match_pool_name={}".format(address_match_pool_name, tag_match_pool_name))
-        #                     self.logger.debug("Saving conflicts to (conflicting_pool_name_attribution) entry in conflict JSON")
-        #                     self.logger.debug("Attributing payout_address match as this match takes precedence.")
-            
-                            
-        #                     conflict_entry = self.__constructConflictingPoolNameAttributionDataEntry(block, tag_match_pool_name, address_match_pool_name)
-        #                     self.__addConflictingData(conflict_type="conflicting_pool_name_attribution", conflict_entry=conflict_entry)
-        #                     self.logger.debug("Block attributed to: {}".format(address_match_pool_name))
-        #                     block['pool_name'] = address_match_pool_name
-        #                     return
-    
-        #             self.logger.debug("Found a matching payout address (match={}), but no matching coinbase tag.".format(address_match_pool_name))
-        #             self.logger.debug("Coinbase message = {}".format(block['coinbase_message']))
-        #             self.logger.debug("Saving block with message for manual inspection")
-        #             #TODO: safe blocks in seperate json file
-        #             self.logger.debug("Block attributed to: {}".format(address_match_pool_name))
-        #             block['pool_name'] = address_match_pool_name
-        #             return
-          
-        #     # No quick address match found, 
-        #     # trying to find matching coinbase tag for the coinbase message.
-        #     # If match is found update pool_data JSON's with payout address.
-        #     else:
-        #         tag_match = False
-        #         for coinbase_tag, pool_info in self.pool_data_json['coinbase_tags'].items():
-        #             # Keep track of multiple tag matches
-        #             match_list = []
-                    
-        #             if coinbase_tag in coinbase_message:
-        #                 tag_match_pool_name = pool_info['name']
-        #                 match_list.append(tag_match_pool_name)
-                        
-        #         if tag_match:
-        #             if self.all_equal(match_list):
-        #                 tag_match_pool_name = match_list[0]
-        #                 block['pool_name'] = tag_match_pool_name
-        #                 self.__updatePoolDataJSON(tag_match_pool_name, block['pool_address'])
-        #                 return
-        #             else:
-        #                 self.logger.warning("Naming conflict! Multiple matching tags found in coinbase message.")
-        #                 self.logger.debug("Unsure to which pool to attribute this block. Attributing to 'Unknown'.")
-        #                 self.logger.debug("Matches found: {}".format(set(match_list)))
-        #                 self.conflict_encoutered = True
-        #                 conflict_entry = self.__constructMultipleCoinbaseTagMatchesDataEntry(block, match_list)
-        #                 self.__addConflictingData(conflict_type='multiple_coinbase_tag_matches', conflict_entry=conflict_entry)
-        #     # No matches found, setting pool_name to unknown.
-        #     self.logger.debug("Block attributed to: Unknown")
-        #     block['pool_name'] = "Unknown"
-        #     return     
-        
-
-        
-    
-    def AttributePoolName(self, coinbase_message, payout_addresses):
-        
+    def AttributePoolName(self, coinbase_message, payout_addresses, update_my_pools_json=False):
+        self.logger.info("Attributing pool name using various pool_data files.")
         results = {
             "coinbase_message": coinbase_message,
             "payout_addresses": payout_addresses,
@@ -300,27 +216,21 @@ class BlockAnalyser():
                                                pool_data = self.B10C_data,
                                                update_data = False),
             
-            "Blockchain.com": self.getPoolNameFromData(coinbase_message = coinbase_message,
+            "Blockchain_com": self.getPoolNameFromData(coinbase_message = coinbase_message,
                                                payout_addresses = payout_addresses,
                                                pool_data = self.blockchain_data,
                                                update_data = False),
             
-            "BTC.com": self.getPoolNameFromData(coinbase_message = coinbase_message,
+            "BTC_com": self.getPoolNameFromData(coinbase_message = coinbase_message,
                                                payout_addresses = payout_addresses,
                                                pool_data = self.btc_data,
                                                update_data = False),
-            
-            "Sjors Provoost": self.getPoolNameFromData(coinbase_message = coinbase_message,
-                                               payout_addresses = payout_addresses,
-                                               pool_data = self.sjors_data,
-                                               update_data = False),
-            
-            "My Attribution": self.getPoolNameFromData(coinbase_message = coinbase_message,
+                        
+            "My_attribution": self.getPoolNameFromData(coinbase_message = coinbase_message,
                                                payout_addresses = payout_addresses,
                                                pool_data = self.my_pool_data,
-                                               update_data = True)
+                                               update_data = update_my_pools_json)
             }
-        
         return results
 
       

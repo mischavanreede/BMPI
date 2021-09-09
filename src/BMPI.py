@@ -51,7 +51,7 @@ def initialize_config():
     config.read(config_path)
     return config
 
-def initialize_logger(config): #For logging, look at: https://docs.python.org/3/howto/logging.html  and  https://docs.python.org/3/howto/logging.html#logging-advanced-tutorial
+def initialize_logger(config, DEBUG): #For logging, look at: https://docs.python.org/3/howto/logging.html  and  https://docs.python.org/3/howto/logging.html#logging-advanced-tutorial
     """
     A method that initializes logging
     # https://docs.python.org/3/howto/logging-cookbook.html#logging-to-multiple-destinations
@@ -68,8 +68,11 @@ def initialize_logger(config): #For logging, look at: https://docs.python.org/3/
     
    
     bmpi_logger = logging.getLogger("BMPI")
-    bmpi_logger.setLevel(logging.DEBUG)
     
+    if DEBUG:
+        bmpi_logger.setLevel(logging.DEBUG)
+    else:
+        bmpi_logger.setLevel(logging.INFO)
     # Set log format
     formatter = logging.Formatter('%(asctime)s | %(name)s | %(levelname)-8s | (%(filename)s:%(lineno)s) -- %(message)s')
     formatter.datefmt = '%Y-%m-%d %H:%M:%S'
@@ -81,7 +84,11 @@ def initialize_logger(config): #For logging, look at: https://docs.python.org/3/
     # Generic log file: Create file handler, Obtains log file location from config (settings.conf)
     file_path = config.get('Logging', 'LOG_FILE_PATH')   
     timed_rotating_file_handler = TimedRotatingFileHandler(filename=file_path, when='h', interval=6, backupCount=50, encoding='utf-8')
-    timed_rotating_file_handler.setLevel(logging.DEBUG)
+    
+    if DEBUG:
+        timed_rotating_file_handler.setLevel(logging.DEBUG)
+    else:
+        timed_rotating_file_handler.setLevel(logging.INFO)
     timed_rotating_file_handler.setFormatter(formatter)
     
     # Error log file:
@@ -327,11 +334,43 @@ def combine_known_pool_data():
         print("An error occured:")
         print("Error message: {}".format(str(ex)))
         sys.exit(1)
+
+@cli.command()
+@click.option('--run_id', default=None, type=str, help='Enter a run_id (str), by default it uses current date and time.')
+@click.option('--update_pool_data', is_flag=True, help='Use this flag to update the pools.json with pool payout addresses during analysis.')
+@click.option('--start_height', type=int, help='Start height of block to stored block to be analysed.')
+@click.option('--end_height', type=int, help='Height of the last block to be analysed.')
+def attribute_pool_names(run_id, update_pool_data, start_height, end_height):
+    '''
+    Reads block data from the blocks_from_scrapers_updated index,
+    calls the attribute_blocks module to determine pool name for each block,
+    writes results to the block_attributions index.
+    '''
+    assert(start_height <= end_height)
+    BMPI = BMPIFunctions(config=config, logger=logger)
+    try:
+        print("Attributing pool names to stored blocks.")
+        print("Storing results in seperate index")
+        # Stored on server: 0 / 694363
+        # Stored at home: 694996 / 699329
+        
+        BMPI.attributePoolNames(run_id=run_id, 
+                                update_my_pool_data=update_pool_data, 
+                                start_height=start_height, 
+                                end_height=end_height)
+        print("Done.")
+        
+    except Exception as e:
+        print("An error occured:")
+        print("Error message: {}".format(str(e)))
+        sys.exit(1)
         
 
 if __name__ == '__main__':
     
+    DEBUG = True
+    
     config = initialize_config()
-    logger = initialize_logger(config)
+    logger = initialize_logger(config, DEBUG)
     
     cli()

@@ -282,7 +282,7 @@
         },
         "/one_more_mcd/": {
             "link": "https://pool.emcd.io",
-            "name": "EMCDPool"
+            "name": "EMCD Pool"
         },
         "/phash.cn/": {
             "link": "http://phash.io",
@@ -343,6 +343,10 @@
         "BTC Guild": {
             "link": "http://www.btcguild.com",
             "name": "BTC Guild"
+        },
+        "BTC.com": {
+            "link": "https://pool.btc.com",
+            "name": "BTC.com"
         },
         "BTCChina Pool": {
             "link": "https://pool.btcc.com/",

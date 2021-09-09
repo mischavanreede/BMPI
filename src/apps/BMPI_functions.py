@@ -9,13 +9,17 @@
 import json
 import time
 import sys
-import click
+
+from datetime import datetime
 
 from .elastic import ElasticsearchController, ElasticsearchIndexes
+from .attribute_blocks import BlockAnalyser
 from .API_scrapers.scraper_controller import ScraperController
 from .API_scrapers.blockchain_scraper import BlockchainScraper
 from .API_scrapers.btc_scraper import BtcScraper
 from .utils import Utils
+
+
 
 
 
@@ -39,6 +43,8 @@ class BMPIFunctions():
         self.es_controller = ElasticsearchController(config=self.config, logger=self.logger)
         
         self.scraper_controller = ScraperController(config=self.config, logger=self.logger)
+        
+        self.block_analyser = None
 
         
 
@@ -84,6 +90,11 @@ class BMPIFunctions():
     
     def gatherAndStoreMissingBlocksFromScrapers(self):
         pass
+    
+        # Get list of block hieghts and hashes from skipped_blocks index
+        # Loop over the skipped blocks
+            # self.gatherAndStoreSpecificBlock(block_height=None, block_hash=None)
+            # self.deleteDocByID(index="skipped_blocks", doc_id=id):
     
     def gatherAndStoreBlocksFromScrapers(self, start_hash=None,
                                          start_height=None,
@@ -327,96 +338,120 @@ class BMPIFunctions():
         
     
 
-    def attributePoolNames(self):
+    def attributePoolNames(self, run_id=None, update_my_pool_data=False, start_height=None, end_height=None):
         '''
-        add click parameter to choose which data to use(API scaper data or node data)
-        possible also which pool_data.json to use
-        store in seperate indices
+        Reads block data from the blocks_from_scrapers_updated index,
+        calls the attribute_blocks module to determine pool name for each block,
+        writes results to the block_attributions index.
         '''
-        pass
-        # def attributePoolNameToBlock(self, block):
-        #     pool_data_updated = False
-        #     explicitly_find_tag_match = True
-    
-        #     payout_address = block['pool_address']
-        #     coinbase_message = block['coinbase_message']
+        self.block_analyser = BlockAnalyser(config=self.config, logger=self.logger)
+        if not run_id:
+            run_id = datetime.now().strftime("%b/%m/%Y %H:%M:%S")               
+        block_data_index = "blocks_from_scrapers_updated"
+        name_attribution_index = "block_attributions"
+        skipped_heights = []
+        
+        assert(run_id and start_height and end_height)
+        self.logger.info("Starting attribution algorithm with following variables:")
+        self.logger.info("Run_id: {}, start_height: {}, end_height: {}, update_my_pool_data: {}".format(run_id, start_height, end_height, update_my_pool_data))
+        
+        for height in range(start_height, end_height+1):
+            self.logger.info("Attributing pool name to block: {}".format(height))
+            # get block from elasticsearch
+            query = "block_height:{}".format(height)
             
+            results = None
+            for attempt in range(3):
+                results = self.es_controller.query_es(index=block_data_index, query=query)
+                if results:
+                    break
+                else:
+                    time.sleep(3)
+            if results is None:
+                self.logger.warning("Couldn't get a response from the ES instance for block height: {}".format(height))
+                skipped_heights.append(height)
+                continue # Go to next height in outer loop
             
+            self.logger.debug("Found {} results for height {}".format(len(results), height))
+            if len(results) == 0:
+                # No result found with matching block height, go to next height
+                skipped_heights.append(height)
+                self.logger.info("No stored block found for height: {}".format(height))
+                continue
+                
+            elif len(results) > 1:
+                block = None
+                for doc in results:
+                    if doc["_source"]['block_height'] == height:
+                        block = doc["_source"]
+                        break 
+                if block == None:
+                    # No result found with exact matching block height
+                    self.logger.info("No stored block found for height: {}".format(height))
+                    continue
+            else:
+                block = results[0]["_source"]
             
-        #     # TODO: combine various pool_data sources
-        #     # TODO: implement check for multiple output addresses
-        #     # TODO: add logger info
+            # extract block information
+            block_hash = block["block_hash"]
+            block_height = block["block_height"]
+            time_stamp = block["timestamp"]
+            coinbase_message = block["coinbase_message"]
+            payout_addresses = list(block["payout_addresses"])
+            fee_reward = block["fee_block_reward"]
+            total_reward = block["total_block_reward"]
             
-        #     if payout_address in self.pool_data_json['payout_addresses']:
-        #         address_match_pool_name = self.pool_data_json['payout_addresses'][payout_address]['name']
-        #         self.logger.debug("Found a matching payout address (match={})".format(address_match_pool_name))
-        #         self.logger.debug("Payout address = {}".format(payout_address))
-                            
-        #         # Check if the miner uses it's pool tag
-        #         if explicitly_find_tag_match:
-        #             for coinbase_tag, pool_info in self.pool_data_json['coinbase_tags'].items():
-        #                 if coinbase_tag in coinbase_message and address_match_pool_name == pool_info['name']:
-        #                     # pool_name is the same for address and tag match "everything is ok"
-        #                     self.logger.debug("Block attributed to: {}".format(address_match_pool_name))
-        #                     block['pool_name'] = address_match_pool_name
-        #                     return
-                        
-        #                 elif coinbase_tag in coinbase_message and address_match_pool_name != pool_info['name']:
-        #                     self.conflict_encoutered = True
-        #                     tag_match_pool_name = pool_info['name']
-        #                     self.logger.info("Naming conflict occured in attributing pool name to block: {}".format(block['block_hash']))
-        #                     self.logger.debug("Coinbase message = {}".format(block['coinbase_message']))
-        #                     self.logger.info("Found conflicting matches for pool_names. Please inspect the logs")
-        #                     self.logger.debug("Found matches; address_match_pool_name={} , tag_match_pool_name={}".format(address_match_pool_name, tag_match_pool_name))
-        #                     self.logger.debug("Saving conflicts to (conflicting_pool_name_attribution) entry in conflict JSON")
-        #                     self.logger.debug("Attributing payout_address match as this match takes precedence.")
+            # attribute pool name based on block information
+            results = self.block_analyser.AttributePoolName(coinbase_message=coinbase_message, 
+                                                            payout_addresses=payout_addresses,
+                                                            update_my_pools_json=update_my_pool_data)
             
-                            
-        #                     conflict_entry = self.__constructConflictingPoolNameAttributionDataEntry(block, tag_match_pool_name, address_match_pool_name)
-        #                     self.__addConflictingData(conflict_type="conflicting_pool_name_attribution", conflict_entry=conflict_entry)
-        #                     self.logger.debug("Block attributed to: {}".format(address_match_pool_name))
-        #                     block['pool_name'] = address_match_pool_name
-        #                     return
-    
-        #             self.logger.debug("Found a matching payout address (match={}), but no matching coinbase tag.".format(address_match_pool_name))
-        #             self.logger.debug("Coinbase message = {}".format(block['coinbase_message']))
-        #             self.logger.debug("Saving block with message for manual inspection")
-        #             #TODO: safe blocks in seperate json file
-        #             self.logger.debug("Block attributed to: {}".format(address_match_pool_name))
-        #             block['pool_name'] = address_match_pool_name
-        #             return
-          
-        #     # No quick address match found, 
-        #     # trying to find matching coinbase tag for the coinbase message.
-        #     # If match is found update pool_data JSON's with payout address.
-        #     else:
-        #         tag_match = False
-        #         for coinbase_tag, pool_info in self.pool_data_json['coinbase_tags'].items():
-        #             # Keep track of multiple tag matches
-        #             match_list = []
-                    
-        #             if coinbase_tag in coinbase_message:
-        #                 tag_match_pool_name = pool_info['name']
-        #                 match_list.append(tag_match_pool_name)
-                        
-        #         if tag_match:
-        #             if self.all_equal(match_list):
-        #                 tag_match_pool_name = match_list[0]
-        #                 block['pool_name'] = tag_match_pool_name
-        #                 self.__updatePoolDataJSON(tag_match_pool_name, block['pool_address'])
-        #                 return
-        #             else:
-        #                 self.logger.warning("Naming conflict! Multiple matching tags found in coinbase message.")
-        #                 self.logger.debug("Unsure to which pool to attribute this block. Attributing to 'Unknown'.")
-        #                 self.logger.debug("Matches found: {}".format(set(match_list)))
-        #                 self.conflict_encoutered = True
-        #                 conflict_entry = self.__constructMultipleCoinbaseTagMatchesDataEntry(block, match_list)
-        #                 self.__addConflictingData(conflict_type='multiple_coinbase_tag_matches', conflict_entry=conflict_entry)
-        #     # No matches found, setting pool_name to unknown.
-        #     self.logger.debug("Block attributed to: Unknown")
-        #     block['pool_name'] = "Unknown"
-        #     return        
+            # construct a results document to be stored in index block_attributions
+            data_entry = {
+                "run_id": run_id,
+                "block_height": block_height,
+                "block_hash": block_hash,
+                "timestamp" : time_stamp,
+                "coinbase_message": coinbase_message,
+                "payout_addresses": list(payout_addresses),
+                "fee_block_reward": fee_reward,
+                "total_block_reward": total_reward,
+                "0xB10C_results": results["0xB10C"],
+                "0xB10C_attribution": results["0xB10C"]["pool_name"],
+                "Blockchain_com_results": results["Blockchain_com"],
+                "Blockchain_com_attribution": results["Blockchain_com"]["pool_name"],
+                "BTC_com_results": results["BTC_com"],
+                "BTC_com_attribution": results["BTC_com"]["pool_name"],
+                "My_results": results["My_attribution"],
+                "My_attribution": results["My_attribution"]["pool_name"]
+                }
+            # store result document
+            for attempt in range(3):
+                if self.es_controller.store(record=data_entry, index_name=name_attribution_index):
+                    self.logger.debug("Result stores successfully.")
+                    break
+                else:
+                    self.logger.warning("Storing of results failed. Trying again.")
+                    time.sleep(3)
             
+                self.logger.warning("Couldnt store results of block at height: {}".format(height))
+                skipped_heights.append(height)
+            self.logger.debug("Continuing with the next block_height.\n")
+        
+        # Done, finishing up
+        self.logger.info("Block attribution complete.")
+        self.logger.info("Skipped a total of {} blocks".format(len(skipped_heights)))
+        
+        if len(skipped_heights) > 0:
+            self.logger.info("Writing skipped heights to skipped_heights_log.json file")
+            entry = {
+                str(run_id) : skipped_heights
+                }
+            current_path = Utils.getCurrentPath()
+            with open(current_path + '/../logs/skipped_heights.json', mode='w', encoding='utf-8') as outfile:
+                json.dump(entry, outfile, indent=4)
+                self.logger.debug("Skipped heights saved to log file 'skipped_heights.json'")
+
 
     
     def deleteStoredBlocksFromElasticsearch(self, index, start_height, end_height, should_delete=False):
@@ -484,15 +519,7 @@ class BMPIFunctions():
         self.logger.info("Document deleted.")
         
         
-    
-    def runScrapers(self):
-        self.scraper_controller.getLastBlocks(n=25)
-        print("Done.")
-    
-    @Utils.printTiming
-    def run(self):
-        pass
-        
+
         
     
         

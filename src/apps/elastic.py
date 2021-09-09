@@ -106,10 +106,10 @@ class ElasticsearchController():
         """
         try:
             # Ignore 400 means to ignore "Index Already Exist" error.
-            self.logger.debug("Creating index: [{}]".format(index_name))
+            self.logger.info("Creating index: [{}]".format(index_name))
             self.es_connection.indices.create(index=index_name, body=index_body) # self.es.indices.create(index=index_name, ignore=400, body=settings)
             #self.es_connection.indices.create(index=index_name)
-            self.logger.debug("Created index: [{}]".format(index_name))
+            self.logger.info("Index created: [{}]".format(index_name))
 
         except Exception as e:
             self.logger.error("Error on index creation : {}".format(str(e)))
@@ -121,7 +121,7 @@ class ElasticsearchController():
                
         try:
             if self.es_connection.indices.exists(index=index_name):
-                self.logger.debug("Index with name [{}] exists.".format(index_name))
+                #self.logger.debug("Index with name [{}] exists.".format(index_name))
                 return True
             self.logger.info("Index with name [{}] was not found.".format(index_name))
             return False
@@ -172,9 +172,9 @@ class ElasticsearchController():
         max_tries = 5
         while True:
             try:
-                outcome = self.es_connection.index(index=index_name, body=record)
                 self.logger.debug("Storing object in index: {}".format(index_name))
-                self.logger.debug("Storing object: {}".format(outcome))
+                self.es_connection.index(index=index_name, body=record)
+                #self.logger.debug("Storing object: {}".format(outcome))
                 is_stored = True
                 break
             except Exception as ex:
@@ -258,12 +258,16 @@ class ElasticsearchController():
         results = [doc.to_dict() for doc in s.scan()]
         return results
     
-    def query_es(self, index, query):
+    def query_es(self, index=None, query=None, max_results=0):
         self.logger.debug("Querying ES instance.")
         search_context = Search(using=self.es_connection, index=index)
         s = search_context.query('query_string', query=query)
-        #count total search results
-        total = s.count()
+        
+        if max_results >= 0:
+            #count total search results
+            total = s.count()
+        else:
+            total = max_results
         self.logger.debug("Returning up to {} results".format(total))
         #set upper limit for results
         s = s[0:total]
@@ -322,7 +326,10 @@ class ElasticsearchController():
 
 class ElasticsearchIndexes():
     
-    INDEX_NAMES = ["blocks_from_scrapers", "blocks_from_scrapers_updated", "skipped_blocks", "api_block_data_conflicts"]
+    INDEX_NAMES = ["blocks_from_scrapers_updated", 
+                   "skipped_blocks", 
+                   "api_block_data_conflicts", 
+                   "block_attributions"]
     
     SETTINGS = {
             "settings" : {
@@ -334,21 +341,21 @@ class ElasticsearchIndexes():
     #https://www.elastic.co/guide/en/elasticsearch/reference/current/mapping-params.html
 
     MAPPINGS = {
-        "blocks_from_scrapers": {
-            "mappings": {
-                "properties": {
-                    "block_hash": {"type": "text"},
-                    "prev_block_hash": {"type": "text"},
-                    "block_height": {"type": "integer"},
-                    "timestamp" : {"type": "date"},
-                    "coinbase_tx_hash": {"type": "text"},
-                    "coinbase_message": {"type": "text"},
-                    "payout_addresses": {"type": "text"},
-                    "fee_block_reward": {"type": "integer"}, 
-                    "total_block_reward": {"type": "integer"}
-                    } 
-                }
-            },
+        # "blocks_from_scrapers": {
+        #     "mappings": {
+        #         "properties": {
+        #             "block_hash": {"type": "text"},
+        #             "prev_block_hash": {"type": "text"},
+        #             "block_height": {"type": "integer"},
+        #             "timestamp" : {"type": "date"},
+        #             "coinbase_tx_hash": {"type": "text"},
+        #             "coinbase_message": {"type": "text"},
+        #             "payout_addresses": {"type": "text"},
+        #             "fee_block_reward": {"type": "integer"}, 
+        #             "total_block_reward": {"type": "integer"}
+        #             } 
+        #         }
+        #     },
         "blocks_from_scrapers_updated": {
             "mappings": {
                 "properties": {
@@ -373,18 +380,6 @@ class ElasticsearchIndexes():
                     }                
                 }
             },
-        "pool_name_attributions": {
-            "mappings": {
-                "properties": {
-                    "block_data_source": {"type": "text"},
-                    "attribution_data_json_file": {"type": "text"},
-                    "block_height": {"type": "integer"},
-                    "block_hash": {"type": "text"},
-                    "has_pool_name_attributed":{ "type": "boolean"},
-                    "pool_name": {"type": "text"}
-                    }                
-                }
-            },
         "api_block_data_conflicts": {
             "mappings": {
                 "properties": {
@@ -400,29 +395,76 @@ class ElasticsearchIndexes():
                     }                
                 }
             },
-        "pool_name_attribution_conflict": {
+        "block_attributions": {
             "mappings": {
                 "properties": {
-                    "block_height": {"type": "integer"},
-                    "block_hash": {"type": "text"},
-                    "payout_address_pool_name": {"type": "text"},
-                    "coinbase_tag_pool_name": {"type": "text"},
-                    "block": {"type": "flattened"}
+                    "run_id": {
+                        "type": "text"},
+                    "block_height": {
+                        "type": "integer"},
+                    "block_hash": {
+                        "type": "text"},
+                    "timestamp" : {
+                        "type": "date"},
+                    "coinbase_message": {
+                        "type": "text"},
+                    "payout_addresses": {
+                        "type": "text"},
+                    "fee_block_reward": {
+                        "type": "long"}, 
+                    "total_block_reward": {
+                        "type": "long"},           
+                    "0xB10C_results": {
+                        "type": "nested",
+                        "properties": {
+                            "pool_name": {"type": "text" },
+                            "multiple_matches": {"type": "boolean"},
+                            "payout_addresses_matches": {"type": "text"},
+                            "coinbase_tag_matches": {"type": "text"}        
+                            }       
+                        },
+                    "0xB10C_attribution" : {
+                        "type": "keyword"
+                        },
+                    "Blockchain_com_results": {
+                        "type": "nested",
+                        "properties": {
+                            "pool_name": {"type": "text" },
+                            "multiple_matches": {"type": "boolean"},
+                            "payout_addresses_matches": {"type": "text"},
+                            "coinbase_tag_matches": {"type": "text"}        
+                            }       
+                        },
+                    "Blockchain_com_attribution" : {
+                        "type": "keyword"
+                        },
+                    "BTC_com_results": {
+                        "type": "nested",
+                        "properties": {
+                            "pool_name": {"type": "text" },
+                            "multiple_matches": {"type": "boolean"},
+                            "payout_addresses_matches": {"type": "text"},
+                            "coinbase_tag_matches": {"type": "text"}        
+                            }       
+                        },
+                    "BTC_com_attribution" : {
+                        "type": "keyword"
+                        },
+                    "My_results": {
+                        "type": "nested",
+                        "properties": {
+                            "pool_name": {"type": "text" },
+                            "multiple_matches": {"type": "boolean"},
+                            "payout_addresses_matches": {"type": "text"},
+                            "coinbase_tag_matches": {"type": "text"}        
+                            }       
+                        },
+                    "My_attribution" : {
+                        "type": "keyword"
+                        }
                     }                
-                }
-            },
-        "multiple_cb_tag_matches_conflict": {
-            "mappings": {
-                "properties": {
-                    "block_hash": {"type": "text"},
-                    "block_height": {"type": "integer"},
-                    "coinbase_tag_pool_names": {"type": "text"},
-                    "block": {"type": "flattened"}
-                    }
-                }
-            
+                }  
             }
-        
         }
     
 
