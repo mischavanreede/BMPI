@@ -258,6 +258,16 @@ class ElasticsearchController():
         results = [doc.to_dict() for doc in s.scan()]
         return results
     
+    
+    def query_all_docs_with_metadata(self, index):
+        self.logger.debug("Querying index {} to obtain all records using .scan()".format(index))
+        query = "*"
+        search_context = Search(using=self.es_connection, index=index)
+        s = search_context.query('query_string', query=query)
+        self.logger.debug("Found a total of {} records".format(s.count()))
+        results = [doc.meta.to_dict() for doc in s.scan()]
+        return results
+    
     def query_es(self, index=None, query=None, max_results=0):
         self.logger.debug("Querying ES instance.")
         search_context = Search(using=self.es_connection, index=index)

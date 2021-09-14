@@ -42,10 +42,10 @@ elasticsearch.hosts: ["http://elasticsearch:9200"]
 elasticsearch.username: "kibana_system"
 
 # password for local development:
-#elasticsearch.password: "UeYcBBmRPCkisS67bRcK"
+elasticsearch.password: "UeYcBBmRPCkisS67bRcK"
 
 # password for server:
-elasticsearch.password: "X4d7AMxOKbtn7y2wXlwz"
+# elasticsearch.password: "X4d7AMxOKbtn7y2wXlwz"
 
 # Kibana can also authenticate to Elasticsearch via "service account tokens".
 # If may use this token instead of a username/password.
