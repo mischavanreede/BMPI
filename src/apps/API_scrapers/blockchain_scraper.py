@@ -308,7 +308,7 @@ class BlockchainScraper(RestRequests):
                 "timestamp" : self.__extractBlockTimestamp(block) * 1000,
                 "coinbase_tx_hash": coinbase_tx['hash'],
                 "coinbase_message": coinbase_message,
-                "payout_addresses": payout_addresses,
+                "payout_addresses": [], # Removed payout addresses
                 "fee_block_reward": fee, 
                 "total_block_reward": block_reward
                 }
