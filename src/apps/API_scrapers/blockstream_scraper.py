@@ -176,7 +176,7 @@ class BlockstreamScraper(RestRequests):
                 block = self.getBlock(block_hash)
             except Exception as ex:
                 exception_name = type(ex).__name__
-                self.logger.exception("Found: " + str(ex))
+                self.logger.error("Found: " + str(exception_name))
                 if 'BlockstreamClientTimeout' in exception_name:
                     #In the event of a Timeout, BlockstreamClientTimeout will be raised.
                     self.logger.info("Encoutered a BlockstreamClientTimeout Exception on try {} out of {}.".format(attempt+1, max_tries))

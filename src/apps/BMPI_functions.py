@@ -324,7 +324,7 @@ class BMPIFunctions():
         try: # Gathering new block
             self.logger.info("Gathering block at height: {}".format(block_height))
             result = self.scraper_controller.getBlockInfoFromScrapers(block_hash)
-            self.logger.debug("Found block: {}".format(result))
+            #self.logger.debug("Found block: {}".format(result))
                            
         except Exception as e:
             # Catch timeout exc and other exceptions
