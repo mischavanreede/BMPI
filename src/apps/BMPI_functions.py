@@ -98,6 +98,10 @@ class BMPIFunctions():
         skipped_blocks = self.es_controller.query_all_docs_with_metadata(index=skipped_index)
         #skipped_blocks = self.es_controller.query_es(query="*", index=skipped_index)
         
+        # Reverse list to start at lower block heights
+        
+        skipped_blocks.reverse()
+        
         for record in skipped_blocks:
             # Add reason for skipping this block to set of reasons
             skip_reasons.add(record["data"]["reason_for_skipping"])
@@ -112,14 +116,14 @@ class BMPIFunctions():
         Utils.prettyPrint(skipped_blocks[total_skipped_blocks-1])
         
         for record in skipped_blocks:
-            
+            self.logger.debug("\n\n")
             # Trying to re-gather skipped block
             if (self.gatherAndStoreSpecificBlock(block_height=record["data"]["block_height"],
                                               block_hash=record["data"]["block_hash"]) ):
-                self.logger.info("Successfully re-gathered block: {}".format(["data"]["block_height"]))
+                self.logger.info("Successfully re-gathered block: {}".format(record["data"]["block_height"]))
                 
             else:
-                self.logger.warning("Failed to re-gather block: {}".format(["data"]["block_height"]))
+                self.logger.warning("Failed to re-gather block: {}".format(record["data"]["block_height"]))
                 
                 
             # # Delete old record from skipped blocks index
