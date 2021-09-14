@@ -265,7 +265,7 @@ class ElasticsearchController():
         search_context = Search(using=self.es_connection, index=index)
         s = search_context.query('query_string', query=query)
         self.logger.debug("Found a total of {} records".format(s.count()))
-        results = [doc.meta.to_dict() for doc in s.scan()]
+        results = [doc.meta.to_dict().update({"_source": doc.to_dict()}) for doc in s.scan()]
         return results
     
     def query_es(self, index=None, query=None, max_results=0):

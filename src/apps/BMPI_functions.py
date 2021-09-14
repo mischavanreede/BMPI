@@ -94,7 +94,11 @@ class BMPIFunctions():
         
         skip_reasons = set()
         # Get records of skipped blocks
-        skipped_blocks = self.es_controller.query_all_docs(index=skipped_index)
+        #skipped_blocks = self.es_controller.query_all_docs(index=skipped_index)
+        skipped_blocks = self.es_controller.query_all_docs_with_metadata(index=skipped_index)
+        #skipped_blocks = self.es_controller.query_es(query="*", index=skipped_index)
+        
+        self.logger.info("doc structure: \n{}".format(Utils.prettyFormat(skipped_blocks[0])))
         
         for record in skipped_blocks:
             # Add reason for skipping this block to set of reasons
