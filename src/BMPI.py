@@ -380,7 +380,25 @@ def gather_skipped_blocks():
         print("Error message: {}".format(str(ex)))
         sys.exit(1)
 
+@cli.command()    
+def test_key_to_address():
+    '''
+    Test code to transform a public key to a bitcoin address.
+    
+    https://blockstream.info/api/tx/d757ef4fe66da70eb56c20119fa1d221595e43ebebca7712fb741e8dd4ba792b
+    https://blockchain.info/rawblock/000000000010cbb69ef733f178bcb186d5ca37cd89f887cb87f27874f16d56b6
+    pub key = 4104ece4b58a8a0cdc08285110db223a76c6cc0bd409c440b813bff0a0575491c8cc9d4a89459e0d6a3dfb0b88a7878b1a83aea0ba8331d5325fe381125ee8d587dcac
 
+    '''
+    try:
+        print("Transforming pub key to address")
+        pub_key = '04ece4b58a8a0cdc08285110db223a76c6cc0bd409c440b813bff0a0575491c8cc9d4a89459e0d6a3dfb0b88a7878b1a83aea0ba8331d5325fe381125ee8d587dc'
+        print(Utils.bitcoin_address_from_pub_key(pub_key[2:-2]))
+        print("Done.")
+    except Exception as ex:
+        print("An error occured:")
+        print("Error message: {}".format(str(ex)))
+        sys.exit(1)
         
 
 if __name__ == '__main__':

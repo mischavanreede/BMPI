@@ -139,6 +139,14 @@ class BlockstreamScraper(RestRequests):
         for output in coinbase_tx['vout']:
             if 'scriptpubkey_address' in output.keys():
                 payout_addresses.append(output['scriptpubkey_address'])
+                
+            if 'scriptpubkey_type' in output.keys():
+                if output['scriptpubkey_type'] == "p2pk":
+                    public_key = output["scriptpubkey"][2:-2] # Remove first and last two bytes, they signal script instructions
+                    address = Utils.bitcoin_address_from_pub_key(pub_key=str(public_key))
+                    payout_addresses.append(address)
+                
+                
         return payout_addresses
         
     def __getBlockReward(self, coinbase_tx):
@@ -204,55 +212,26 @@ class BlockstreamScraper(RestRequests):
         block_height = self.__extractBlockHeight(block)
         coinbase_tx = self.getCoinbaseTransaction(block_hash)
         coinbase_message = Utils.hexStringToAscii(coinbase_tx['vin'][0]['scriptsig'])
-        
-        
-        
-        
-        if "/P2SH/" in coinbase_message or "/p2sh/" in coinbase_message:
-
-            block_reward = self.__getBlockReward(coinbase_tx)        
+        payout_addresses = self.__getPayoutAddressesFromCbTx(coinbase_tx)#coinbase_tx['vout'][0]['scriptpubkey_address']
+        block_reward = self.__getBlockReward(coinbase_tx)
+        fee = -1
+        if block_reward >= 0:
             fee = block_reward - Utils.getBlockReward(self.__extractBlockHeight(block))
-        
-            if fee >= Utils.btcToSats(21*10**6):
-                self.logger.error("Fee exceeds max number of bitcoins for block {}. Setting value to -1.".format(block_height))
-                fee = -1            
-
-            payout_addresses = [] # Set to empty list as the blockstream scraper cannot determine output addresses for these types of transactions.  #coinbase_tx['vout'][0]['scriptpubkey_address'] doesn't exist in return value from API
-                 
-            block_information = {
-                "block_hash": block_hash,
-                "prev_block_hash": self.__extractPrevBlockHash(block),
-                "block_height": block_height,
-                "timestamp" : self.__extractBlockTimestamp(block) * 1000,
-                "coinbase_tx_hash": coinbase_tx['txid'],
-                "coinbase_message": coinbase_message,
-                "payout_addresses": payout_addresses, 
-                "fee_block_reward": fee, 
-                "total_block_reward": block_reward
-                }      
-        
-        else:
-            
-            payout_addresses = self.__getPayoutAddressesFromCbTx(coinbase_tx)#coinbase_tx['vout'][0]['scriptpubkey_address']
-            block_reward = self.__getBlockReward(coinbase_tx)
-        
-            fee = block_reward - Utils.getBlockReward(self.__extractBlockHeight(block))
-        
             if fee >= Utils.btcToSats(21*10**6):
                 self.logger.error("Fee exceeds max number of bitcoins for block {}. Setting value to -1.".format(block_height))
                 fee = -1
-                
-            block_information = {
-                "block_hash": block_hash,
-                "prev_block_hash": self.__extractPrevBlockHash(block),
-                "block_height": block_height,
-                "timestamp" : self.__extractBlockTimestamp(block) * 1000,
-                "coinbase_tx_hash": coinbase_tx['txid'],
-                "coinbase_message": coinbase_message,
-                "payout_addresses": [], # Removed payout addresses
-                "fee_block_reward": fee, 
-                "total_block_reward": block_reward
-                }
+            
+        block_information = {
+            "block_hash": block_hash,
+            "prev_block_hash": self.__extractPrevBlockHash(block),
+            "block_height": block_height,
+            "timestamp" : self.__extractBlockTimestamp(block) * 1000,
+            "coinbase_tx_hash": coinbase_tx['txid'],
+            "coinbase_message": coinbase_message,
+            "payout_addresses": payout_addresses,
+            "fee_block_reward": fee, 
+            "total_block_reward": block_reward
+            }
         self.logger.debug("Block information succesfully obtained from the Blockstream.info API.")
         return block_information
         

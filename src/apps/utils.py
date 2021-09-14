@@ -9,6 +9,9 @@ import os
 import sys
 import json
 
+import hashlib
+import base58
+
 from functools import wraps
 from time import time
 
@@ -227,6 +230,45 @@ class Utils():
         print("Done populating pool_data.json")
     
     
+    def hash160(hex_str):
+        sha = hashlib.sha256()
+        rip = hashlib.new('ripemd160')
+        sha.update(hex_str)
+        rip.update( sha.digest() )
+        #print ( "key_hash = \t" + rip.hexdigest() )
+        return rip.hexdigest()  # .hexdigest() is hex ASCII
+    
+    def bitcoin_address_from_pub_key(pub_key):
+        # https://gist.github.com/circulosmeos/ef6497fd3344c2c2508b92bb9831173f
+        # https://en.bitcoin.it/wiki/Protocol_documentation#Addresses
+        assert( isinstance(pub_key, str))
+        compress_pubkey = False
+        
+        if (compress_pubkey):
+            if (ord(bytearray.fromhex(pub_key[-2:])) % 2 == 0):
+                pub_key_compressed = '02'
+            else:
+                pub_key_compressed = '03'
+            pub_key_compressed += pub_key[2:66]
+            hex_str = bytearray.fromhex(pub_key_compressed)
+        else:
+            hex_str = bytearray.fromhex(pub_key)
+
+        # Obtain key:
+        key_hash = '00' + Utils.hash160(hex_str)
+        
+        # Obtain signature:
+        sha = hashlib.sha256()
+        sha.update( bytearray.fromhex(key_hash) )
+        checksum = sha.digest()
+        sha = hashlib.sha256()
+        sha.update(checksum)
+        checksum = sha.hexdigest()[0:8]
+        
+        #print ( "checksum = \t" + sha.hexdigest() )
+        #print ( "key_hash + checksum = \t" + key_hash + ' ' + checksum )
+        #print ( "bitcoin address = \t" + (base58.b58encode( bytes(bytearray.fromhex(key_hash + checksum)) )).decode('utf-8') )
+        return (base58.b58encode( bytes(bytearray.fromhex(key_hash + checksum)) )).decode('utf-8')
 
     def printTiming(f):
         """

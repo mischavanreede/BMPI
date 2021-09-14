@@ -15,8 +15,6 @@ from datetime import datetime
 from .elastic import ElasticsearchController, ElasticsearchIndexes
 from .attribute_blocks import BlockAnalyser
 from .API_scrapers.scraper_controller import ScraperController
-from .API_scrapers.blockchain_scraper import BlockchainScraper
-from .API_scrapers.btc_scraper import BtcScraper
 from .utils import Utils
 
 
