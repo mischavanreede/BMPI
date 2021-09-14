@@ -365,6 +365,23 @@ def attribute_pool_names(run_id, update_pool_data, start_height, end_height):
         print("Error message: {}".format(str(e)))
         sys.exit(1)
         
+@cli.command()       
+def gather_skipped_blocks():
+    '''
+    Try to re-gathers skipped blocks
+    '''
+    BMPI = BMPIFunctions(config=config, logger=logger)
+    try:
+        print("Re-gathering skipped blocks.")
+        BMPI.gatherMissingBlocksFromScrapers()
+        print("Done.")
+    except Exception as ex:
+        print("An error occured:")
+        print("Error message: {}".format(str(ex)))
+        sys.exit(1)
+
+
+        
 
 if __name__ == '__main__':
     

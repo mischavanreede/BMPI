@@ -10,7 +10,6 @@ Documentation
 
 @author: Mischa van Reede
 
-Improvement idea: to avoid duplicate API calls, extract neccesary information in one method 
 """
 
 import time
@@ -202,12 +201,16 @@ class BlockstreamScraper(RestRequests):
             self.logger.info("Couldn't retrieve the block.")
             return {}
         
+        self.logger.info("Block print: {}".format(block))
+        Utils.prettyPrint(block)
+        
         self.logger.debug("Processing block information.")
         block_height = self.__extractBlockHeight(block)
         coinbase_tx = self.getCoinbaseTransaction(block_hash)
         coinbase_message = Utils.hexStringToAscii(coinbase_tx['vin'][0]['scriptsig'])
         
-        #Utils.prettyPrint(coinbase_tx['vout'])
+        self.logger.info("Coinbase tx : {}".format(coinbase_tx))
+        Utils.prettyPrint(coinbase_tx)
         payout_addresses = self.__getPayoutAddressesFromCbTx(coinbase_tx)#coinbase_tx['vout'][0]['scriptpubkey_address']
         block_reward = self.__getBlockReward(coinbase_tx)
         #self.logger.info("Total reward: {}, Payout Addresses: [{}]".format(block_reward, payout_addresses))

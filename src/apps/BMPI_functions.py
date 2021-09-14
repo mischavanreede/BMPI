@@ -87,14 +87,39 @@ class BMPIFunctions():
         self.logger.info("Data removed.")
     
     
+    @Utils.printTiming
+    def gatherMissingBlocksFromScrapers(self):
+   
+        skipped_index = "skipped_blocks"
+        
+        skip_reasons = set()
+        # Get records of skipped blocks
+        skipped_blocks = self.es_controller.query_all_docs(index=skipped_index)
+        
+        for record in skipped_blocks:
+            # Add reason for skipping this block to set of reasons
+            skip_reasons.add(record["_source"]["reason_for_skipping"])
+        
+        self.logger.info("Found a total of {} reasons for skipping blocks.".format(len(skip_reasons)))
+        self.logger.info("Namely: {}".format(list(skip_reasons)))
+        
+        total_skipped_blocks = len(skipped_blocks) 
+        print("first block:")
+        Utils.prettyPrint(skipped_blocks[0])
+        print("last block:")
+        Utils.prettyPrint(skipped_blocks[total_skipped_blocks-1])
+        
+        # Alternative; use query to gather skipped blocks based on reason for skipping (should work with .query_es())
+        # for record in skipped_blocks:
+            
+        #     # Trying to re-gather skipped block
+        #     self.gatherAndStoreSpecificBlock(block_height=record["_source"]["block_height"],
+        #                                      block_hash=record["_source"]["block_hash"])
+        #     # Delete old record from skipped blocks index
+        #     self.deleteDocByID(index=skipped_index, 
+        #                        doc_id=record["_id"])
+          
     
-    def gatherAndStoreMissingBlocksFromScrapers(self):
-        pass
-    
-        # Get list of block hieghts and hashes from skipped_blocks index
-        # Loop over the skipped blocks
-            # self.gatherAndStoreSpecificBlock(block_height=None, block_hash=None)
-            # self.deleteDocByID(index="skipped_blocks", doc_id=id):
     
     def gatherAndStoreBlocksFromScrapers(self, start_hash=None,
                                          start_height=None,
