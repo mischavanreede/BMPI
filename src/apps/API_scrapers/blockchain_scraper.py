@@ -271,27 +271,47 @@ class BlockchainScraper(RestRequests):
         
         #Utils.prettyPrint(coinbase_tx['out'])
         #payout_addresses = coinbase_tx['out'][0]['addr']
-        block_reward = self.__getBlockReward(coinbase_tx)
-        payout_addresses = self.__getPayoutAddressesFromCbTx(coinbase_tx)
-        #self.logger.debug("Total reward: {}, Payout Addresses: [{}]".format(block_reward, payout_addresses))
         
         if block['fee'] >= Utils.btcToSats(21*10**6):
-            self.logger.warning("Fee exceeds max number of bitcoins. Setting value to -1.")
+            self.logger.error("Fee exceeds max number of bitcoins for block {}. Setting value to -1.".format(block_height))
             fee = -1
         else:
             fee = block['fee']
-            
-        block_information = {
-            "block_hash": block_hash,
-            "prev_block_hash": self.__extractPrevBlockHash(block),
-            "block_height": block_height,
-            "timestamp" : self.__extractBlockTimestamp(block) * 1000,
-            "coinbase_tx_hash": coinbase_tx['hash'],
-            "coinbase_message": coinbase_message,
-            "payout_addresses": payout_addresses,
-            "fee_block_reward": fee, 
-            "total_block_reward": block_reward
-            }
+        
+        #self.logger.debug("Total reward: {}, Payout Addresses: [{}]".format(block_reward, payout_addresses))
+        
+        # Check for scripting language in coinbase tx:
+        if "/P2SH/" in coinbase_message or "/p2sh/" in coinbase_message:
+ 
+            block_reward = self.__getBlockReward(coinbase_tx)
+            payout_addresses = [] # Set to empty list as the blockstream scraper cannot determine output addresses for these types of transactions.
+     
+            block_information = {
+                "block_hash": block_hash,
+                "prev_block_hash": self.__extractPrevBlockHash(block),
+                "block_height": block_height,
+                "timestamp" : self.__extractBlockTimestamp(block) * 1000,
+                "coinbase_tx_hash": coinbase_tx['hash'],
+                "coinbase_message": coinbase_message,
+                "payout_addresses": payout_addresses, 
+                "fee_block_reward": fee, 
+                "total_block_reward": block_reward
+                }      
+        else:
+            block_reward = self.__getBlockReward(coinbase_tx)
+            payout_addresses = self.__getPayoutAddressesFromCbTx(coinbase_tx)
+        
+            block_information = {
+                "block_hash": block_hash,
+                "prev_block_hash": self.__extractPrevBlockHash(block),
+                "block_height": block_height,
+                "timestamp" : self.__extractBlockTimestamp(block) * 1000,
+                "coinbase_tx_hash": coinbase_tx['hash'],
+                "coinbase_message": coinbase_message,
+                "payout_addresses": payout_addresses,
+                "fee_block_reward": fee, 
+                "total_block_reward": block_reward
+                }
         self.logger.debug("Block information succesfully obtained from the Blockchain.info API.")
         return block_information
 

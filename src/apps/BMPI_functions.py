@@ -98,11 +98,9 @@ class BMPIFunctions():
         skipped_blocks = self.es_controller.query_all_docs_with_metadata(index=skipped_index)
         #skipped_blocks = self.es_controller.query_es(query="*", index=skipped_index)
         
-        self.logger.info("doc structure: \n{}".format(Utils.prettyFormat(skipped_blocks[0])))
-        
         for record in skipped_blocks:
             # Add reason for skipping this block to set of reasons
-            skip_reasons.add(record["_source"]["reason_for_skipping"])
+            skip_reasons.add(record["data"]["reason_for_skipping"])
         
         self.logger.info("Found a total of {} reasons for skipping blocks.".format(len(skip_reasons)))
         self.logger.info("Namely: {}".format(list(skip_reasons)))
@@ -113,15 +111,20 @@ class BMPIFunctions():
         print("last block:")
         Utils.prettyPrint(skipped_blocks[total_skipped_blocks-1])
         
-        # Alternative; use query to gather skipped blocks based on reason for skipping (should work with .query_es())
-        # for record in skipped_blocks:
+        for record in skipped_blocks:
             
-        #     # Trying to re-gather skipped block
-        #     self.gatherAndStoreSpecificBlock(block_height=record["_source"]["block_height"],
-        #                                      block_hash=record["_source"]["block_hash"])
-        #     # Delete old record from skipped blocks index
-        #     self.deleteDocByID(index=skipped_index, 
-        #                        doc_id=record["_id"])
+            # Trying to re-gather skipped block
+            if (self.gatherAndStoreSpecificBlock(block_height=record["data"]["block_height"],
+                                              block_hash=record["data"]["block_hash"]) ):
+                self.logger.info("Successfully re-gathered block: {}".format(["data"]["block_height"]))
+                
+            else:
+                self.logger.warning("Failed to re-gather block: {}".format(["data"]["block_height"]))
+                
+                
+            # # Delete old record from skipped blocks index
+            # self.deleteDocByID(index=skipped_index, 
+            #                     doc_id=record["id"])
           
     
     
@@ -342,13 +345,14 @@ class BMPIFunctions():
             block = result['block']
             self.block_list.append(block)
             self.logger.debug("Block succesfully gathered.\n")
+            return True
             
         if exception_encoutered:
-            self.logger.error("Please check the logs to see what happened.")
-            sys.exit(1)
-                
+            self.logger.warning("Exception encountered. Please check the logs to see what happened.")
+            return False
+                            
         if conflict_encountered:
-            self.logger.info("Conflict encountered.")
+            self.logger.warning("Conflict encountered.")
             # Set block height to conflict entry
             result['conflict_entry']['block_height'] = block_height
             # Add conflict block to list
@@ -360,10 +364,11 @@ class BMPIFunctions():
                 "reason_for_skipping": "Conflicting API information."
                 }
             self.skipped_blocks_list.append(skipped_blocks_entry)
+            return False
         
-        self.logger.debug("Storing results in ES.")
-        self.performInterimBlockStorage()
-        self.logger.debug("Results stored.")
+        # self.logger.debug("Storing results in ES.")
+        # self.performInterimBlockStorage()
+        # self.logger.debug("Results stored.")
         
     
 

@@ -144,8 +144,9 @@ class BlockstreamScraper(RestRequests):
     def __getBlockReward(self, coinbase_tx):
         total_reward = 0
         
-        for output in coinbase_tx['vout']: #if there is a payout addres and payout value
-            if ('scriptpubkey_address' in output.keys()) and ('value' in output.keys()):
+        for output in coinbase_tx['vout']: 
+            #if there is a payout value, unfortunately blockstream doensn't include payout address for scripting type transactions such as "p2sh" or "p2pk"
+            if ('value' in output.keys()):
                 total_reward += output['value']
         
         if total_reward >= Utils.btcToSats(21*10**6):
@@ -180,13 +181,11 @@ class BlockstreamScraper(RestRequests):
                     #In the event of a Timeout, BlockstreamClientTimeout will be raised.
                     self.logger.info("Encoutered a BlockstreamClientTimeout Exception on try {} out of {}.".format(attempt+1, max_tries))
                     self.logger.info("Trying again after 5 seconds.")
-                    self.logger.info("Waiting...")
                     time.sleep(5)
                 elif 'BlockstreamApiError' in exception_name:
                     # In the event of an API error (e.g. Invalid resource, Bad Request, etc), Bloxplorer will raise BlockstreamApiError.
                     self.logger.info("Encoutered a BlockstreamApiError Exception on try {} out of {}.".format(attempt+1, max_tries))
                     self.logger.info("Trying again after 5 seconds.")
-                    self.logger.info("Waiting...")
                     time.sleep(5)    
                 else: # BlockstreamClientError
                     # For anything else, Bloxplorer will raise a BlockstreamClientError.
@@ -198,40 +197,62 @@ class BlockstreamScraper(RestRequests):
                 break
         
         if not block:
-            self.logger.info("Couldn't retrieve the block.")
+            self.logger.error("Couldn't retrieve the block: {}".format(block_hash))
             return {}
-        
-        self.logger.info("Block print: {}".format(block))
-        Utils.prettyPrint(block)
         
         self.logger.debug("Processing block information.")
         block_height = self.__extractBlockHeight(block)
         coinbase_tx = self.getCoinbaseTransaction(block_hash)
         coinbase_message = Utils.hexStringToAscii(coinbase_tx['vin'][0]['scriptsig'])
         
-        self.logger.info("Coinbase tx : {}".format(coinbase_tx))
-        Utils.prettyPrint(coinbase_tx)
-        payout_addresses = self.__getPayoutAddressesFromCbTx(coinbase_tx)#coinbase_tx['vout'][0]['scriptpubkey_address']
-        block_reward = self.__getBlockReward(coinbase_tx)
-        #self.logger.info("Total reward: {}, Payout Addresses: [{}]".format(block_reward, payout_addresses))
         
-        fee = block_reward - Utils.getBlockReward(self.__extractBlockHeight(block))
         
-        if fee >= Utils.btcToSats(21*10**6):
-            self.logger.warning("Fee exceeds max number of bitcoins. Setting value to -1.")
-            fee = -1
         
-        block_information = {
-            "block_hash": block_hash,
-            "prev_block_hash": self.__extractPrevBlockHash(block),
-            "block_height": block_height,
-            "timestamp" : self.__extractBlockTimestamp(block) * 1000,
-            "coinbase_tx_hash": coinbase_tx['txid'],
-            "coinbase_message": coinbase_message,
-            "payout_addresses": payout_addresses,
-            "fee_block_reward": fee, 
-            "total_block_reward": block_reward
-            }
+        if "/P2SH/" in coinbase_message or "/p2sh/" in coinbase_message:
+
+            block_reward = self.__getBlockReward(coinbase_tx)        
+            fee = block_reward - Utils.getBlockReward(self.__extractBlockHeight(block))
+        
+            if fee >= Utils.btcToSats(21*10**6):
+                self.logger.error("Fee exceeds max number of bitcoins for block {}. Setting value to -1.".format(block_height))
+                fee = -1            
+
+            payout_addresses = [] # Set to empty list as the blockstream scraper cannot determine output addresses for these types of transactions.  #coinbase_tx['vout'][0]['scriptpubkey_address'] doesn't exist in return value from API
+                 
+            block_information = {
+                "block_hash": block_hash,
+                "prev_block_hash": self.__extractPrevBlockHash(block),
+                "block_height": block_height,
+                "timestamp" : self.__extractBlockTimestamp(block) * 1000,
+                "coinbase_tx_hash": coinbase_tx['txid'],
+                "coinbase_message": coinbase_message,
+                "payout_addresses": payout_addresses, 
+                "fee_block_reward": fee, 
+                "total_block_reward": block_reward
+                }      
+        
+        else:
+            
+            payout_addresses = self.__getPayoutAddressesFromCbTx(coinbase_tx)#coinbase_tx['vout'][0]['scriptpubkey_address']
+            block_reward = self.__getBlockReward(coinbase_tx)
+        
+            fee = block_reward - Utils.getBlockReward(self.__extractBlockHeight(block))
+        
+            if fee >= Utils.btcToSats(21*10**6):
+                self.logger.error("Fee exceeds max number of bitcoins for block {}. Setting value to -1.".format(block_height))
+                fee = -1
+                
+            block_information = {
+                "block_hash": block_hash,
+                "prev_block_hash": self.__extractPrevBlockHash(block),
+                "block_height": block_height,
+                "timestamp" : self.__extractBlockTimestamp(block) * 1000,
+                "coinbase_tx_hash": coinbase_tx['txid'],
+                "coinbase_message": coinbase_message,
+                "payout_addresses": payout_addresses,
+                "fee_block_reward": fee, 
+                "total_block_reward": block_reward
+                }
         self.logger.debug("Block information succesfully obtained from the Blockstream.info API.")
         return block_information
         

@@ -268,7 +268,7 @@ class ElasticsearchController():
         results = []
         for doc in s.scan():
             result = doc.meta.to_dict()
-            result["_source"] = doc.to_dict()
+            result["data"] = doc.to_dict()
             results.append(result)
         
         #results = [doc.meta.to_dict().update({"_source": doc.to_dict()}) for doc in s.scan()]
