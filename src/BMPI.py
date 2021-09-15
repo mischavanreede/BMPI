@@ -397,8 +397,6 @@ def test_key_to_address():
     pub_key = 03a05203af00cc042052c88a2b80ddabcacce7c5d4bc4fabf887505db3e4ff7001
     address = 12y2z1dv2q96fnEHUWhnyc5Sjb32p2LPTi
     
-    
-
     '''
     try:
         print("Transforming pub keys to addresses\n")

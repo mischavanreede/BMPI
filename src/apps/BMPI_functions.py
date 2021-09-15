@@ -114,7 +114,7 @@ class BMPIFunctions():
         Utils.prettyPrint(skipped_blocks[total_skipped_blocks-1])
         
         for record in skipped_blocks:
-            self.logger.debug("\n\n")
+            self.logger.debug("\n")
             # Trying to re-gather skipped block
             if (self.gatherAndStoreSpecificBlock(block_height=record["data"]["block_height"],
                                               block_hash=record["data"]["block_hash"]) ):

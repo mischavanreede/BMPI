@@ -142,8 +142,8 @@ class BlockstreamScraper(RestRequests):
                 
             if 'scriptpubkey_type' in output.keys():
                 if output['scriptpubkey_type'] == "p2pk":
-                    public_key = output["scriptpubkey"][2:-2] # Remove first and last two bytes, they signal script instructions
-                    address = Utils.bitcoin_address_from_pub_key(pub_key=str(public_key))
+                    public_key = output["scriptpubkey"][2:-2] # Remove first and last two op-code bytes, they signal script instructions
+                    address = Utils.bitcoin_address_from_pub_key(pub_key=str(public_key), logger=self.logger)
                     self.logger.debug("Encoutered a p2pk output transaction. Calculated output address from scriptpubkey: {}".format(address))
                     payout_addresses.append(address)             
         return payout_addresses
