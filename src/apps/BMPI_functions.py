@@ -44,8 +44,6 @@ class BMPIFunctions():
         
         self.block_analyser = None
 
-        
-
     
     def removeALLStoredElasticsearchData(self):
         self.logger.info("Removing all data from elasticsearch.")
@@ -84,52 +82,7 @@ class BMPIFunctions():
         self.es_controller.delete_index(index)
         self.logger.info("Data removed.")
     
-    
-    @Utils.printTiming
-    def gatherMissingBlocksFromScrapers(self):
-   
-        skipped_index = "skipped_blocks"
-        
-        skip_reasons = set()
-        # Get records of skipped blocks
-        #skipped_blocks = self.es_controller.query_all_docs(index=skipped_index)
-        skipped_blocks = self.es_controller.query_all_docs_with_metadata(index=skipped_index)
-        #skipped_blocks = self.es_controller.query_es(query="*", index=skipped_index)
-        
-        # Reverse list to start at lower block heights
-        
-        skipped_blocks.reverse()
-        
-        for record in skipped_blocks:
-            # Add reason for skipping this block to set of reasons
-            skip_reasons.add(record["data"]["reason_for_skipping"])
-        
-        self.logger.info("Found a total of {} reasons for skipping blocks.".format(len(skip_reasons)))
-        self.logger.info("Namely: {}".format(list(skip_reasons)))
-        
-        total_skipped_blocks = len(skipped_blocks) 
-        print("first block:")
-        Utils.prettyPrint(skipped_blocks[0])
-        print("last block:")
-        Utils.prettyPrint(skipped_blocks[total_skipped_blocks-1])
-        
-        for record in skipped_blocks:
-            self.logger.debug("\n")
-            # Trying to re-gather skipped block
-            if (self.gatherAndStoreSpecificBlock(block_height=record["data"]["block_height"],
-                                              block_hash=record["data"]["block_hash"]) ):
-                self.logger.info("Successfully re-gathered block: {}".format(record["data"]["block_height"]))
-                
-            else:
-                self.logger.warning("Failed to re-gather block: {}".format(record["data"]["block_height"]))
-                
-                
-            # # Delete old record from skipped blocks index
-            # self.deleteDocByID(index=skipped_index, 
-            #                     doc_id=record["id"])
-          
-    
-    
+
     def gatherAndStoreBlocksFromScrapers(self, start_hash=None,
                                          start_height=None,
                                          blocks_stored=0,
@@ -311,7 +264,7 @@ class BMPIFunctions():
         return block_hash, block_height
     
     
-    def gatherAndStoreSpecificBlock(self, block_height=None, block_hash=None):
+    def gatherSpecificBlock(self, block_height=None, block_hash=None, store_block=True):
         
         if block_height is None or block_hash is None:
             self.logger.error("Please specify a valid block height and block hash.")
@@ -347,10 +300,22 @@ class BMPIFunctions():
             block = result['block']
             self.block_list.append(block)
             self.logger.debug("Block succesfully gathered.\n")
+            
+            if store_block:
+                self.logger.debug("Storing results in ES.")
+                self.performInterimBlockStorage()
+                self.logger.debug("Results stored.")
+            
             return True
             
         if exception_encoutered:
             self.logger.warning("Exception encountered. Please check the logs to see what happened.")
+            
+            if store_block:
+                self.logger.debug("Storing results in ES.")
+                self.performInterimBlockStorage()
+                self.logger.debug("Results stored.")
+            
             return False
                             
         if conflict_encountered:
@@ -366,14 +331,66 @@ class BMPIFunctions():
                 "reason_for_skipping": "Conflicting API information."
                 }
             self.skipped_blocks_list.append(skipped_blocks_entry)
+            
+            if store_block:
+                self.logger.debug("Storing results in ES.")
+                self.performInterimBlockStorage()
+                self.logger.debug("Results stored.")
+                
             return False
         
-        # self.logger.debug("Storing results in ES.")
-        # self.performInterimBlockStorage()
-        # self.logger.debug("Results stored.")
+    @Utils.printTiming
+    def gatherMissingBlocksFromScrapers(self):
+   
+        skipped_index = "skipped_blocks"
         
-    
+        skip_reasons = set()
+        # Get records of skipped blocks
+        #skipped_blocks = self.es_controller.query_all_docs(index=skipped_index)
+        skipped_blocks = self.es_controller.query_all_docs_with_metadata(index=skipped_index)
+        #skipped_blocks = self.es_controller.query_es(query="*", index=skipped_index)
+        
+        # Reverse list to start at lower block heights
+        
+        skipped_blocks.reverse()
+        
+        for record in skipped_blocks:
+            # Add reason for skipping this block to set of reasons
+            skip_reasons.add(record["data"]["reason_for_skipping"])
+        
+        self.logger.info("Found a total of {} reasons for skipping blocks.".format(len(skip_reasons)))
+        self.logger.info("Namely: {}".format(list(skip_reasons)))
+        
+        # total_skipped_blocks = len(skipped_blocks) 
+        # print("first block:")
+        # Utils.prettyPrint(skipped_blocks[0])
+        # print("last block:")
+        # Utils.prettyPrint(skipped_blocks[total_skipped_blocks-1])
+        
+        success = 0
+        failed = 0
+        
+        
+        for record in skipped_blocks:
+            # Trying to re-gather skipped block
+            if (self.gatherSpecificBlock(block_height=record["data"]["block_height"],
+                                              block_hash=record["data"]["block_hash"],
+                                              store_block=(True))):
+                self.logger.info("Successfully re-gathered block: {}".format(record["data"]["block_height"]))
+                success += 1
+   
+            else:
+                self.logger.warning("Failed to re-gather block: {}".format(record["data"]["block_height"]))
+                failed += 1
+            
+            # Delete old record from skipped blocks index
+            self.deleteDocByID(index=skipped_index, 
+                                doc_id=record["id"])   
+          
+        self.logger.info("Re-gathering complete. Successfull: {},  Failed: {}".format(success, failed))
+        return
 
+    @Utils.printTiming
     def attributePoolNames(self, run_id=None, update_my_pool_data=False, start_height=None, end_height=None):
         '''
         Reads block data from the blocks_from_scrapers_updated index,

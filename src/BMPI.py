@@ -83,7 +83,7 @@ def initialize_logger(config, DEBUG): #For logging, look at: https://docs.python
     
     # Generic log file: Create file handler, Obtains log file location from config (settings.conf)
     file_path = config.get('Logging', 'LOG_FILE_PATH')   
-    timed_rotating_file_handler = TimedRotatingFileHandler(filename=file_path, when='h', interval=6, backupCount=50, encoding='utf-8')
+    timed_rotating_file_handler = TimedRotatingFileHandler(filename=file_path, when='h', interval=1, backupCount=50, encoding='utf-8')
     
     if DEBUG:
         timed_rotating_file_handler.setLevel(logging.DEBUG)
@@ -250,7 +250,7 @@ def store_block(block_height, block_hash):
     
     try:
         print("Trying to gather and store block: {}  /  {}".format(block_height, block_hash))
-        BMPI.gatherAndStoreSpecificBlock(block_height=block_height, block_hash=block_hash)
+        BMPI.gatherSpecificBlock(block_height=block_height, block_hash=block_hash, store_block=True)
         print("Done.")
         
     except Exception as ex:
@@ -366,7 +366,7 @@ def attribute_pool_names(run_id, update_pool_data, start_height, end_height):
         sys.exit(1)
         
 @cli.command()       
-def gather_skipped_blocks():
+def gather_and_store_skipped_blocks():
     '''
     Try to re-gathers skipped blocks
     '''
