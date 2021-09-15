@@ -145,9 +145,7 @@ class BlockstreamScraper(RestRequests):
                     public_key = output["scriptpubkey"][2:-2] # Remove first and last two bytes, they signal script instructions
                     address = Utils.bitcoin_address_from_pub_key(pub_key=str(public_key))
                     self.logger.debug("Encoutered a p2pk output transaction. Calculated output address from scriptpubkey: {}".format(address))
-                    payout_addresses.append(address)
-                
-                
+                    payout_addresses.append(address)             
         return payout_addresses
         
     def __getBlockReward(self, coinbase_tx):

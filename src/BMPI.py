@@ -385,15 +385,44 @@ def test_key_to_address():
     '''
     Test code to transform a public key to a bitcoin address.
     
+    Examples:
+    pub key 04:
     https://blockstream.info/api/tx/d757ef4fe66da70eb56c20119fa1d221595e43ebebca7712fb741e8dd4ba792b
     https://blockchain.info/rawblock/000000000010cbb69ef733f178bcb186d5ca37cd89f887cb87f27874f16d56b6
-    pub key = 4104ece4b58a8a0cdc08285110db223a76c6cc0bd409c440b813bff0a0575491c8cc9d4a89459e0d6a3dfb0b88a7878b1a83aea0ba8331d5325fe381125ee8d587dcac
+    pub key = 04ece4b58a8a0cdc08285110db223a76c6cc0bd409c440b813bff0a0575491c8cc9d4a89459e0d6a3dfb0b88a7878b1a83aea0ba8331d5325fe381125ee8d587dc
+    
+    pub key 03:
+    https://blockchain.info/rawblock/0000000000000001a2ef84f5945f525963ad672bc48a95ea2bf87cea2a1c6117
+    https://blockchain.info/rawblock/0000000000000001a2ef84f5945f525963ad672bc48a95ea2bf87cea2a1c6117
+    pub_key = 03a05203af00cc042052c88a2b80ddabcacce7c5d4bc4fabf887505db3e4ff7001
+    address = 12y2z1dv2q96fnEHUWhnyc5Sjb32p2LPTi
+    
+    
 
     '''
     try:
-        print("Transforming pub key to address")
-        pub_key = '04ece4b58a8a0cdc08285110db223a76c6cc0bd409c440b813bff0a0575491c8cc9d4a89459e0d6a3dfb0b88a7878b1a83aea0ba8331d5325fe381125ee8d587dc'
-        print(Utils.bitcoin_address_from_pub_key(pub_key[2:-2]))
+        print("Transforming pub keys to addresses\n")
+        
+        pub_key_04 = '04ece4b58a8a0cdc08285110db223a76c6cc0bd409c440b813bff0a0575491c8cc9d4a89459e0d6a3dfb0b88a7878b1a83aea0ba8331d5325fe381125ee8d587dc'
+        pub_key_03 = '03a05203af00cc042052c88a2b80ddabcacce7c5d4bc4fabf887505db3e4ff7001'
+        pub_key_02 = '022af168cba6edf073a68f91a645d0b4833d549d15377a94472acb8bb58a6a26cd'
+        
+        print("Transforming a pub key with prefix '04'")
+        print("Pub key: {}".format(pub_key_04))
+        print(Utils.bitcoin_address_from_pub_key(pub_key=pub_key_04, logger=logger))
+        print()
+        
+        print("Transforming a pub key with prefix '03'")
+        print("Pub key: {}".format(pub_key_03))
+        print(Utils.bitcoin_address_from_pub_key(pub_key=pub_key_03, logger=logger))
+        print()
+       
+        print("Transforming a pub key with prefix '02'")
+        print("Pub key: {}".format(pub_key_02))
+        print(Utils.bitcoin_address_from_pub_key(pub_key=pub_key_02, logger=logger))
+        print()
+        
+        
         print("Done.")
     except Exception as ex:
         print("An error occured:")

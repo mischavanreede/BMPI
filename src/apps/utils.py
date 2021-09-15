@@ -238,21 +238,33 @@ class Utils():
         #print ( "key_hash = \t" + rip.hexdigest() )
         return rip.hexdigest()  # .hexdigest() is hex ASCII
     
-    def bitcoin_address_from_pub_key(pub_key):
+    def bitcoin_address_from_pub_key(pub_key, logger):
         # https://gist.github.com/circulosmeos/ef6497fd3344c2c2508b92bb9831173f
         # https://en.bitcoin.it/wiki/Protocol_documentation#Addresses
         assert( isinstance(pub_key, str))
-        compress_pubkey = False
+        #compress_pubkey = False
         
-        if (compress_pubkey):
-            if (ord(bytearray.fromhex(pub_key[-2:])) % 2 == 0):
-                pub_key_compressed = '02'
-            else:
-                pub_key_compressed = '03'
-            pub_key_compressed += pub_key[2:66]
-            hex_str = bytearray.fromhex(pub_key_compressed)
-        else:
+        prefix = pub_key[:2]
+        
+        if prefix == '02':
             hex_str = bytearray.fromhex(pub_key)
+        elif prefix == '03':
+            hex_str = bytearray.fromhex(pub_key)
+        elif prefix == '04':
+            hex_str = bytearray.fromhex(pub_key)
+        else:
+            logger.warning("Public key {} does not contain the right prefix".format(pub_key))
+            return
+        
+        
+        # if (compress_pubkey):
+        #     if (ord(bytearray.fromhex(pub_key[-2:])) % 2 == 0):
+        #         pub_key_compressed = '02'
+        #     else:
+        #         pub_key_compressed = '03'
+        #     pub_key_compressed += pub_key[2:66]
+        #     hex_str = bytearray.fromhex(pub_key_compressed)
+            
 
         # Obtain key:
         key_hash = '00' + Utils.hash160(hex_str)
