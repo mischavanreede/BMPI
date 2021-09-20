@@ -221,6 +221,7 @@ class ScraperController:
             block_info_list.append(block)
         
         # Set prev_block_hash to same value for genisis block to allow for storage.
+        self.logger.debug("{} / {} . Blockhash / gen hash".format(block_hash, self.config.get('Constants', 'genesis_hash')))
         if (block_hash == self.config.get('Constants', 'genesis_hash')):
             for block in block_info_list:
                 self.logger.debug("Found genisis block, setting prev_hash to zero.")
