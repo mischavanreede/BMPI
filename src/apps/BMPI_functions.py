@@ -384,6 +384,8 @@ class BMPIFunctions():
                 failed += 1
             
             # Delete old record from skipped blocks index
+            # if conflict occurs new document is already stored so deleting
+            # the old is ok.
             self.deleteDocByID(index=skipped_index, 
                                 doc_id=record["id"])   
           

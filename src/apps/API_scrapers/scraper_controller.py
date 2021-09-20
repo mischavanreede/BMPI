@@ -219,6 +219,10 @@ class ScraperController:
             block = scraper.getBlockInformation(block_hash)
             block_info_list.append(block)
         
+        # Set prev_block_hash to same value for genisis block to allow for storage.
+        if (block_hash == self.config.get('Constants', 'genesis_hash')):
+            for block in block_info_list:
+                block['prev_block_hash'] = "0000000000000000000000000000000000000000000000000000000000000000"
         
         self.logger.debug("Blocks succesfully gathered.")
         # Compare blocks

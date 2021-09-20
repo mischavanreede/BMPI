@@ -430,9 +430,11 @@ def test_key_to_address():
 
 if __name__ == '__main__':
     
-    DEBUG = True
+    
     
     config = initialize_config()
+    DEBUG = config.get('Constants', 'DEBUG')
+    
     logger = initialize_logger(config, DEBUG)
     
     cli()
