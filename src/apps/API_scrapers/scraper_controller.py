@@ -23,7 +23,7 @@ from .blockchain_scraper import BlockchainScraper
 from .blockstream_scraper import BlockstreamScraper
 #from .blockcypher_scraper import BlockcypherScraper
 #from .btc_scraper import BtcScraper
-from .utils import Utils
+from ..utils import Utils
 
 
 import time
