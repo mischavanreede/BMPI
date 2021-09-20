@@ -85,6 +85,7 @@ class BMPIFunctions():
 
     def gatherAndStoreBlocksFromScrapers(self, start_hash=None,
                                          start_height=None,
+                                         stop_height=0,
                                          blocks_stored=0,
                                          blocks_skipped=0,
                                          api_conflicts=0):
@@ -94,6 +95,8 @@ class BMPIFunctions():
         starting at the latest block_height.
 
         '''
+        assert(start_height>=stop_height)
+        
         if start_hash is not None and start_height is not None:
             block_height = start_height
             block_hash = start_hash
@@ -110,7 +113,7 @@ class BMPIFunctions():
         total_blocks_skipped = blocks_skipped # 0 if not set
         total_number_of_api_conflicts = api_conflicts # 0 if not set
         
-        while block_height >= 0:
+        while block_height >= stop_height:
             succesfully_gathered_block = False
             exception_encoutered = False
             conflict_encountered = False

@@ -125,11 +125,12 @@ def cli():
 
 @cli.command()
 @click.option('--start_height', default=None, show_default=True, type=int, help='height of the block to start the run.')
+@click.option('--stop_height', default=0, show_default=True, type=int, help='height at which the run is stopped, block at entered height is not stored.')
 @click.option('--start_hash', default=None, show_default=True, type=str, help='hash of the block to start the run.')
 @click.option('--blocks_stored', default=0, show_default=True, type=int, help='# of blocks stored during previous runs.')
 @click.option('--blocks_skipped', default=0, show_default=True, type=int, help='# of blocks skipped on previour runs.')
 @click.option('--api_conflicts', default=0, show_default=True, type=int, help='# of api_conflics found during previous runs.')
-def gather_scraper_data(start_height, start_hash, blocks_stored, blocks_skipped, api_conflicts):
+def gather_scraper_data(start_height, stop_height, start_hash, blocks_stored, blocks_skipped, api_conflicts):
     """
     Gathers block data from implemented scrapers and store it in elasticsearch. 
     If using parameters; make sure start_hash and start_height are from the 
@@ -151,6 +152,7 @@ def gather_scraper_data(start_height, start_hash, blocks_stored, blocks_skipped,
     try:
         BMPI.gatherAndStoreBlocksFromScrapers(start_height=start_height,
                                               start_hash=start_hash,
+                                              stop_height=stop_height,
                                               blocks_stored=blocks_stored,
                                               blocks_skipped=blocks_skipped,
                                               api_conflicts=api_conflicts)
