@@ -23,6 +23,7 @@ from .blockchain_scraper import BlockchainScraper
 from .blockstream_scraper import BlockstreamScraper
 #from .blockcypher_scraper import BlockcypherScraper
 #from .btc_scraper import BtcScraper
+from .utils import Utils
 
 
 import time
@@ -222,7 +223,10 @@ class ScraperController:
         # Set prev_block_hash to same value for genisis block to allow for storage.
         if (block_hash == self.config.get('Constants', 'genesis_hash')):
             for block in block_info_list:
+                self.logger.debug("Found genisis block, setting prev_hash to zero.")
                 block['prev_block_hash'] = "0000000000000000000000000000000000000000000000000000000000000000"
+                Utils.prettyPrint(block)
+                
         
         self.logger.debug("Blocks succesfully gathered.")
         # Compare blocks
