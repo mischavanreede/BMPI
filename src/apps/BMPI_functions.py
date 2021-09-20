@@ -119,7 +119,7 @@ class BMPIFunctions():
             conflict_encountered = False
             
             # Store blocks when %block_store_interval blocks are gathered.
-            if (block_height % block_store_interval == 0) or forced_stopped:
+            if (block_height % block_store_interval == 0) or forced_stopped or (block_height == (stop_height+1)):
                 
                 total_blocks_stored += len(self.block_list)
                 total_blocks_skipped += len(self.skipped_blocks_list)
@@ -201,7 +201,7 @@ class BMPIFunctions():
                     self.logger.debug("Block hash found for next iteration.\n")
                     continue # 4.
             self.logger.error("Code should not reach this part.")
-        # End of outer while    
+        # End of outer while      
         self.logger.info("END of loop: Crawling API's for block data complete.")    
     
 
