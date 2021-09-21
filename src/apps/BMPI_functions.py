@@ -414,7 +414,7 @@ class BMPIFunctions():
         self.logger.info("Starting attribution algorithm with following variables:")
         self.logger.info("Run_id: {}, start_height: {}, end_height: {}, update_my_pool_data: {}".format(run_id, start_height, end_height, update_my_pool_data))
         
-        assert(run_id and start_height and end_height)
+        assert(run_id and (start_height <= end_height) and (start_height >= 0) and (end_height >= 0))
         for height in range(start_height, end_height+1):
             self.logger.info("Attributing pool name to block: {}".format(height))
             # get block from elasticsearch
