@@ -489,15 +489,15 @@ class BMPIFunctions():
             # store result document
             for attempt in range(3):
                 if self.es_controller.store(record=data_entry, index_name=name_attribution_index):
-                    self.logger.debug("Result stores successfully.")
+                    self.logger.info("Results stored successfully.")
                     break
                 else:
                     self.logger.warning("Storing of results failed. Trying again.")
                     time.sleep(3)
             
-                self.logger.warning("Couldnt store results of block at height: {}".format(height))
+                self.logger.error("Couldnt store results of block at height: {}".format(height))
                 skipped_heights.append(height)
-            self.logger.debug("Continuing with the next block_height.\n")
+            self.logger.info("Continuing with the next block_height.\n")
         
         # Done, finishing up
         self.logger.info("Block attributions complete for all blocks.")
