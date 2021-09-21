@@ -436,7 +436,8 @@ def test_key_to_address():
 if __name__ == '__main__':
     
     config = initialize_config()
-    DEBUG = config.get('Constants', 'DEBUG')
+    DEBUG = config.getboolean('Constants', 'DEBUG')
+    print("Debug is set to: {}".format(DEBUG))
     
     logger = initialize_logger(config, DEBUG)
     
