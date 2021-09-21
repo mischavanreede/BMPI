@@ -222,17 +222,20 @@ def delete_doc_by_id(index, doc_id):
         print("Error message: {}".format(str(ex)))
         sys.exit(1)
         
+
 @cli.command()
-def remove_duplicate_api_conflicts():
+@click.option('--index', default=None, help='Name of index from which to remove the duplicates.')
+def remove_duplicates(index):
     '''
-    Removes duplicates from the API conflicts index based on the block_height
+    Removes duplicates from the index based on the block_height
     of the stored documents. Keeps one record stored.
     '''
     BMPI = BMPIFunctions(config=config, logger=logger)
+    #index = 'skipped_blocks'
     
     try:
-        print("Deleting duplicates from the api_conflicts index")
-        BMPI.remove_duplicate_api_conflicts()
+        print("Deleting duplicates from the index: {}".format(index))
+        BMPI.remove_duplicates(index)
         print("Done.")
         
     except Exception as ex:

@@ -28,7 +28,7 @@ class RestRequests:
         
         self.config = config
         self.logger = logger
-        self.timeout = 10                  # Response timeout
+        self.timeout = 15                  # Response timeout
         self.request_delay = 0.01      # Time delay between GET requests
 
 

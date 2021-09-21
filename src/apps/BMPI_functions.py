@@ -52,11 +52,10 @@ class BMPIFunctions():
         self.logger.info("All data removed.")
     
         
-    def remove_duplicate_api_conflicts(self):
-        api_index = "api_block_data_conflicts"
-        self.logger.debug("Removing duplicates from {}".format(api_index))
+    def remove_duplicates(self, index):
+        self.logger.debug("Removing duplicates from {}".format(index))
         #gather list of all blockheights
-        results = self.es_controller.query_all_docs(index=api_index)
+        results = self.es_controller.query_all_docs(index=index)
         self.logger.debug("Returned a total of {} results".format(len(results)))
         
         #Keep track of heights, use set to avoid duplicates:
@@ -74,7 +73,7 @@ class BMPIFunctions():
             # construct query
             height_query = "block_height:{}".format(height)
             # delete duplicate method from elastic.py
-            self.es_controller.remove_all_but_one_by_query(index=api_index, query=height_query)
+            self.es_controller.remove_all_but_one_by_query(index=index, query=height_query)
         self.logger.debug("Done deleting duplicate api conflicts.")
     
     def removeStoredElasticsearchData(self, index):
