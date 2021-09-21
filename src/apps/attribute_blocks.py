@@ -54,6 +54,8 @@ class BlockAnalyser():
         # My known-pools data kept in seperate variable for updating.
         self.my_pool_data = my_pool_data
         
+        self.logger.debug("BlockAnalyser object initialized.")
+        
     def __load_json(self, file_path):
         self.logger.debug("Trying to load [{}] file into memory.".format(file_path))  
         try:

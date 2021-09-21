@@ -401,17 +401,20 @@ class BMPIFunctions():
         calls the attribute_blocks module to determine pool name for each block,
         writes results to the block_attributions index.
         '''
+                
         self.block_analyser = BlockAnalyser(config=self.config, logger=self.logger)
         if not run_id:
-            run_id = datetime.now().strftime("%b/%m/%Y %H:%M:%S")               
+            self.logger.info("Using current time and date as run_id.")
+            run_id = str(datetime.now().strftime("%b/%m/%Y %H:%M:%S"))
+        
         block_data_index = "blocks_from_scrapers_updated"
         name_attribution_index = "block_attributions"
         skipped_heights = []
-        
-        assert(run_id and start_height and end_height)
+   
         self.logger.info("Starting attribution algorithm with following variables:")
         self.logger.info("Run_id: {}, start_height: {}, end_height: {}, update_my_pool_data: {}".format(run_id, start_height, end_height, update_my_pool_data))
         
+        assert(run_id and start_height and end_height)
         for height in range(start_height, end_height+1):
             self.logger.info("Attributing pool name to block: {}".format(height))
             # get block from elasticsearch
