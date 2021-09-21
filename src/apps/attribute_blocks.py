@@ -123,7 +123,7 @@ class BlockAnalyser():
         pool_data = pool_data['data']
         
         # Find matches
-        self.logger.debug("Looking for payout address matches.")
+        #self.logger.debug("Looking for payout address matches.")
         for payout_address in payout_addresses:
             if payout_address in pool_data['payout_addresses']:
                 found_address_match = True
@@ -207,7 +207,7 @@ class BlockAnalyser():
      
     
     def AttributePoolName(self, coinbase_message, payout_addresses, update_my_pools_json=False):
-        self.logger.info("Attributing pool name using various pool_data files.")
+        self.logger.debug("Attributing pool name using various pool_data files.")
         results = {
             "coinbase_message": coinbase_message,
             "payout_addresses": payout_addresses,
@@ -231,6 +231,7 @@ class BlockAnalyser():
                                                pool_data = self.my_pool_data,
                                                update_data = update_my_pools_json)
             }
+        self.logger.debug("Attribution complete.")
         return results
 
       

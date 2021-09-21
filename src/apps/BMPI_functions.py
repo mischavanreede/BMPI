@@ -429,14 +429,15 @@ class BMPIFunctions():
                 skipped_heights.append(height)
                 continue # Go to next height in outer loop
             
-            self.logger.debug("Found {} results for height {}".format(len(results), height))
+            
             if len(results) == 0:
                 # No result found with matching block height, go to next height
                 skipped_heights.append(height)
-                self.logger.info("No stored block found for height: {}".format(height))
+                self.logger.debug("Found 0 results for height {}".format(height))
                 continue
                 
             elif len(results) > 1:
+                self.logger.debug("Found {} results for height {}".format(len(results), height))
                 block = None
                 for doc in results:
                     if doc["_source"]['block_height'] == height:
@@ -462,7 +463,7 @@ class BMPIFunctions():
             results = self.block_analyser.AttributePoolName(coinbase_message=coinbase_message, 
                                                             payout_addresses=payout_addresses,
                                                             update_my_pools_json=update_my_pool_data)
-            
+
             # construct a results document to be stored in index block_attributions
             data_entry = {
                 "run_id": run_id,
@@ -496,7 +497,7 @@ class BMPIFunctions():
             self.logger.debug("Continuing with the next block_height.\n")
         
         # Done, finishing up
-        self.logger.info("Block attribution complete.")
+        self.logger.info("Block attributions complete for all blocks.")
         self.logger.info("Skipped a total of {} blocks".format(len(skipped_heights)))
         
         if len(skipped_heights) > 0:

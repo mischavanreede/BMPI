@@ -356,7 +356,7 @@ def attribute_pool_names(run_id, update_pool_data, start_height, end_height):
     try:
         print("Attributing pool names to stored blocks.")
         print("Storing results in seperate index")
-        # Stored on server: 0 / 694363
+        # Stored on server: 0 / 700000
         # Stored at home: 694996 / 699329
         
         BMPI.attributePoolNames(run_id=run_id, 
@@ -434,8 +434,6 @@ def test_key_to_address():
         
 
 if __name__ == '__main__':
-    
-    
     
     config = initialize_config()
     DEBUG = config.get('Constants', 'DEBUG')
