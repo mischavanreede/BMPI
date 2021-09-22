@@ -403,7 +403,7 @@ class BMPIFunctions():
         skipped_heights = []
         self.block_analyser = BlockAnalyser(config=self.config, logger=self.logger)
         
-        
+        self.logger.info("Start looping over blocks.")
         for height in range(start_height, end_height+1):
             self.logger.info("Attributing pool name to block: {}".format(height))
             # get block from elasticsearch
