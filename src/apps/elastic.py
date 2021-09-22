@@ -469,7 +469,7 @@ class ElasticsearchIndexes():
                     "BTC_com_attribution" : {
                         "type": "keyword"
                         },
-                    "My_results": {
+                    "My_inital_results": {
                         "type": "nested",
                         "properties": {
                             "pool_name": {"type": "text" },
@@ -478,9 +478,21 @@ class ElasticsearchIndexes():
                             "coinbase_tag_matches": {"type": "text"}        
                             }       
                         },
-                    "My_attribution" : {
+                    "My_initial_attribution" : {
                         "type": "keyword"
-                        }
+                        },
+                    "My_updated_results": {
+                        "type": "nested",
+                        "properties": {
+                            "pool_name": {"type": "text" },
+                            "multiple_matches": {"type": "boolean"},
+                            "payout_addresses_matches": {"type": "text"},
+                            "coinbase_tag_matches": {"type": "text"}        
+                            }       
+                        },
+                    "My_updated_attribution" : {
+                        "type": "keyword"
+                        }                  
                     }                
                 }  
             }

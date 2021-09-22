@@ -359,8 +359,7 @@ def attribute_pool_names(run_id, update_pool_data, start_height, end_height):
         # Stored on server: 0 / 700000
         # Stored at home: 694996 / 699329
         
-        BMPI.attributePoolNames(run_id=run_id, 
-                                update_my_pool_data=update_pool_data, 
+        BMPI.attributePoolNames(run_id=run_id,
                                 start_height=start_height, 
                                 end_height=end_height)
         print("Done.")
@@ -369,6 +368,7 @@ def attribute_pool_names(run_id, update_pool_data, start_height, end_height):
         print("An error occured:")
         print("Error message: {}".format(str(e)))
         sys.exit(1)
+
         
 @cli.command()       
 def gather_and_store_skipped_blocks():

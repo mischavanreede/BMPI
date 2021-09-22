@@ -26,7 +26,8 @@ class BlockAnalyser():
         btc_com_known_pools_file_path =         base_path + "data/btc-com.json"
     
         # My pool data1
-        my_known_pools_file_path =  base_path + "pools.json"
+        my_pools_file_path =  base_path + "pools.json"
+        my_updated_pools_file_path =  base_path + "updated_pools.json"
         
         B10C_data = {
                 "name": "0xB10C",
@@ -42,7 +43,11 @@ class BlockAnalyser():
             }
         my_pool_data = {
                 "name": "My Data",
-                "data": self.__load_json(my_known_pools_file_path)
+                "data": self.__load_json(my_pools_file_path)
+            }
+        my_pool_data_updated = {
+                "name": "My Updated Data",
+                "data": self.__load_json(my_updated_pools_file_path)
             }
         
         # All data from external sources
@@ -52,6 +57,7 @@ class BlockAnalyser():
 
         # My known-pools data.
         self.my_pool_data = my_pool_data
+        self.my_pool_data_updated = my_pool_data_updated
         
         self.logger.info("BlockAnalyser object initialized.")
         
@@ -210,7 +216,7 @@ class BlockAnalyser():
         # Wrapped function call to call this method from outside and use only my_pool_data variable
         # Should update pools.json if new payout address is encoutered.
         _ = self.__getPoolNameFromData(coinbase_message, payout_addresses, self.my_pool_data, update_data)
-        return
+        return     
     
     def AttributePoolName(self, coinbase_message, payout_addresses):
         self.logger.debug("Attributing pool name using various pool_data files.")
@@ -232,10 +238,16 @@ class BlockAnalyser():
                                                pool_data = self.btc_data,
                                                update_data = False),
                         
-            "My_attribution": self.__getPoolNameFromData(coinbase_message = coinbase_message,
+            "My_initial_attribution": self.__getPoolNameFromData(coinbase_message = coinbase_message,
                                                payout_addresses = payout_addresses,
                                                pool_data = self.my_pool_data,
+                                               update_data = False),
+            
+            "My_updated_attribution": self.__getPoolNameFromData(coinbase_message = coinbase_message,
+                                               payout_addresses = payout_addresses,
+                                               pool_data = self.my_pool_data_updated,
                                                update_data = False)
+            
             }
         self.logger.debug("Attribution complete.")
         return results

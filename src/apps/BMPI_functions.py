@@ -541,8 +541,10 @@ class BMPIFunctions():
                 "Blockchain_com_attribution": results["Blockchain_com"]["pool_name"],
                 "BTC_com_results": results["BTC_com"],
                 "BTC_com_attribution": results["BTC_com"]["pool_name"],
-                "My_results": results["My_attribution"],
-                "My_attribution": results["My_attribution"]["pool_name"]
+                "My_inital_results": results["My_initial_attribution"],
+                "My_initial_attribution": results["My_initial_attribution"]["pool_name"],
+                "My_updated_results": results["My_updated_attribution"],
+                "My_updated_attribution": results["My_updated_attribution"]["pool_name"]
                 }
             # store result document
             for attempt in range(3):
@@ -570,8 +572,9 @@ class BMPIFunctions():
             with open(current_path + '/../logs/skipped_heights.json', mode='w', encoding='utf-8') as outfile:
                 json.dump(entry, outfile, indent=4)
                 self.logger.debug("Skipped heights saved to log file 'skipped_heights.json'")
-
-
+    
+    
+    
     
     def deleteStoredBlocksFromElasticsearch(self, index, start_height, end_height, should_delete=False):
         '''
