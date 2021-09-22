@@ -72,9 +72,9 @@ class BlockAnalyser():
  
         if record_type == "payout_addresses":
             
-            if entry_key not in self.my_pool_data["payout_addresses"]:
+            if entry_key not in self.my_pool_data['data']["payout_addresses"]:
                 self.logger.info("Adding payout address [{}] to my_pool_data.".format(entry_key))
-                self.my_pool_data["payout_addresses"][entry_key] = record
+                self.my_pool_data['data']["payout_addresses"][entry_key] = record
                 my_data_updated = True
                 
             else:
@@ -83,9 +83,9 @@ class BlockAnalyser():
             
         elif record_type == "coinbase_tags":
             
-            if entry_key not in self.my_pool_data["coinbase_tags"]:
+            if entry_key not in self.my_pool_data['data']["coinbase_tags"]:
                 self.logger.info("Adding coinbase_tag {} to my_pool_data.".format(entry_key))
-                self.my_pool_data["coinbase_tags"][entry_key] = record
+                self.my_pool_data['data']["coinbase_tags"][entry_key] = record
                 my_data_updated = True
                 
             else:
@@ -100,7 +100,7 @@ class BlockAnalyser():
             self.logger.info("Writing changes to known-pools/pools.json file")
             current_path = Utils.getCurrentPath()
             with open(current_path + '/../../known-pools/pools.json', mode='w', encoding='utf-8') as outfile:
-                json.dump(self.my_pool_data, outfile, sort_keys=True, indent=4)
+                json.dump(self.my_pool_data['data'], outfile, sort_keys=True, indent=4)
                 self.logger.info("known-pools/pools.json file updated.")
         return
     
