@@ -393,9 +393,68 @@ class BMPIFunctions():
           
         self.logger.info("Re-gathering complete. Successfull: {},  Failed: {}".format(success, failed))
         return
-
+    
+    
+    def updatePoolDataWithPayoutAddressData(self):
+        
+        start_height = 0
+        end_height = 700000
+        block_data_index = "blocks_from_scrapers_updated"
+        skipped_heights = []
+        self.block_analyser = BlockAnalyser(config=self.config, logger=self.logger)
+        
+        
+        for height in range(start_height, end_height+1):
+            self.logger.info("Attributing pool name to block: {}".format(height))
+            # get block from elasticsearch
+            query = "block_height:{}".format(height)
+            
+            results = None
+            for attempt in range(3):
+                results = self.es_controller.query_es(index=block_data_index, query=query)
+                if results:
+                    break
+                else:
+                    time.sleep(3)
+            if results is None:
+                self.logger.warning("Couldn't get a response from the ES instance for block height: {}".format(height))
+                skipped_heights.append(height)
+                continue # Go to next height in outer loop
+            
+            
+            if len(results) == 0:
+                # No result found with matching block height, go to next height
+                skipped_heights.append(height)
+                self.logger.warning("Found 0 results for height {}".format(height))
+                continue
+                
+            elif len(results) > 1:
+                self.logger.debug("Found {} results for height {}".format(len(results), height))
+                block = None
+                for doc in results:
+                    if doc["_source"]['block_height'] == height:
+                        block = doc["_source"]
+                        break 
+                if block == None:
+                    # No result found with exact matching block height
+                    self.logger.info("No stored block found for height: {}".format(height))
+                    continue
+            else:
+                block = results[0]["_source"]
+        
+            
+            # Attribute block, and update if new address is found.
+            coinbase_message = block["coinbase_message"]
+            payout_addresses = list(block["payout_addresses"])
+            update_data = True
+            self.block_analyser.updateMyPoolData(coinbase_message, payout_addresses, update_data)
+            
+        self.logger.info("Done looping over all blocks.")
+        self.logger.info("Skipped the following heights: {}".format(skipped_heights))
+        return
+    
     @Utils.printTiming
-    def attributePoolNames(self, run_id=None, update_my_pool_data=False, start_height=None, end_height=None):
+    def attributePoolNames(self, run_id=None, start_height=None, end_height=None):
         '''
         Reads block data from the blocks_from_scrapers_updated index,
         calls the attribute_blocks module to determine pool name for each block,
@@ -412,7 +471,7 @@ class BMPIFunctions():
         skipped_heights = []
    
         self.logger.info("Starting attribution algorithm with following variables:")
-        self.logger.info("Run_id: {}, start_height: {}, end_height: {}, update_my_pool_data: {}".format(run_id, start_height, end_height, update_my_pool_data))
+        self.logger.info("Run_id: {}, start_height: {}, end_height: {}".format(run_id, start_height, end_height))
         
         assert(run_id and (start_height <= end_height) and (start_height >= 0) and (end_height >= 0))
         for height in range(start_height, end_height+1):
@@ -464,8 +523,7 @@ class BMPIFunctions():
             
             # attribute pool name based on block information
             results = self.block_analyser.AttributePoolName(coinbase_message=coinbase_message, 
-                                                            payout_addresses=payout_addresses,
-                                                            update_my_pools_json=update_my_pool_data)
+                                                            payout_addresses=payout_addresses)
 
             # construct a results document to be stored in index block_attributions
             data_entry = {

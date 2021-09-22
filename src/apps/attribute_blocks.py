@@ -45,13 +45,12 @@ class BlockAnalyser():
                 "data": self.__load_json(my_known_pools_file_path)
             }
         
-        # All data from external sources in a list
-        self.external_pool_data_list = [B10C_data, blockchain_data, btc_data]
+        # All data from external sources
         self.B10C_data = B10C_data
         self.blockchain_data = blockchain_data
         self.btc_data = btc_data
 
-        # My known-pools data kept in seperate variable for updating.
+        # My known-pools data.
         self.my_pool_data = my_pool_data
         
         self.logger.debug("BlockAnalyser object initialized.")
@@ -74,7 +73,7 @@ class BlockAnalyser():
         if record_type == "payout_addresses":
             
             if entry_key not in self.my_pool_data["payout_addresses"]:
-                self.logger.debug("Adding payout address [{}] to my_pool_data.".format(entry_key))
+                self.logger.info("Adding payout address [{}] to my_pool_data.".format(entry_key))
                 self.my_pool_data["payout_addresses"][entry_key] = record
                 my_data_updated = True
                 
@@ -85,7 +84,7 @@ class BlockAnalyser():
         elif record_type == "coinbase_tags":
             
             if entry_key not in self.my_pool_data["coinbase_tags"]:
-                self.logger.debug("Adding coinbase_tag {} to my_pool_data.".format(entry_key))
+                self.logger.info("Adding coinbase_tag {} to my_pool_data.".format(entry_key))
                 self.my_pool_data["coinbase_tags"][entry_key] = record
                 my_data_updated = True
                 
@@ -98,15 +97,14 @@ class BlockAnalyser():
             return
                
         if my_data_updated:
-            self.logger.debug("Writing changes to known-pools/pools.json file")
+            self.logger.info("Writing changes to known-pools/pools.json file")
             current_path = Utils.getCurrentPath()
             with open(current_path + '/../../known-pools/pools.json', mode='w', encoding='utf-8') as outfile:
                 json.dump(self.my_pool_data, outfile, sort_keys=True, indent=4)
-                self.logger.debug("known-pools/pools.json file updated.")
+                self.logger.info("known-pools/pools.json file updated.")
         return
     
-    
-    def getPoolNameFromData(self, coinbase_message, payout_addresses, pool_data, update_data):
+    def __getPoolNameFromData(self, coinbase_message, payout_addresses, pool_data, update_data):
         
         pool_name_attribution = {
             "pool_name": None,
@@ -132,7 +130,7 @@ class BlockAnalyser():
                 pool_name = pool_data["payout_addresses"][payout_address]["name"]
                 payout_address_matches.add(pool_name)
         
-        self.logger.debug("Looking for coinbase tag matches.")
+        #self.logger.debug("Looking for coinbase tag matches.")
         for tag in pool_data["coinbase_tags"]:
             
             if tag in coinbase_message:
@@ -208,30 +206,36 @@ class BlockAnalyser():
             return pool_name_attribution
      
     
-    def AttributePoolName(self, coinbase_message, payout_addresses, update_my_pools_json=False):
+    def updateMyPoolData(self, coinbase_message, payout_addresses, update_data):
+        # Wrapped function call to call this method from outside and use only my_pool_data variable
+        # Should update pools.json if new payout address is encoutered.
+        _ = self.__getPoolNameFromData(coinbase_message, payout_addresses, self.my_pool_data, update_data)
+        return
+    
+    def AttributePoolName(self, coinbase_message, payout_addresses):
         self.logger.debug("Attributing pool name using various pool_data files.")
         results = {
             "coinbase_message": coinbase_message,
             "payout_addresses": payout_addresses,
-            "0xB10C": self.getPoolNameFromData(coinbase_message = coinbase_message,
+            "0xB10C": self.__getPoolNameFromData(coinbase_message = coinbase_message,
                                                payout_addresses = payout_addresses,
                                                pool_data = self.B10C_data,
                                                update_data = False),
             
-            "Blockchain_com": self.getPoolNameFromData(coinbase_message = coinbase_message,
+            "Blockchain_com": self.__getPoolNameFromData(coinbase_message = coinbase_message,
                                                payout_addresses = payout_addresses,
                                                pool_data = self.blockchain_data,
                                                update_data = False),
             
-            "BTC_com": self.getPoolNameFromData(coinbase_message = coinbase_message,
+            "BTC_com": self.__getPoolNameFromData(coinbase_message = coinbase_message,
                                                payout_addresses = payout_addresses,
                                                pool_data = self.btc_data,
                                                update_data = False),
                         
-            "My_attribution": self.getPoolNameFromData(coinbase_message = coinbase_message,
+            "My_attribution": self.__getPoolNameFromData(coinbase_message = coinbase_message,
                                                payout_addresses = payout_addresses,
                                                pool_data = self.my_pool_data,
-                                               update_data = update_my_pools_json)
+                                               update_data = False)
             }
         self.logger.debug("Attribution complete.")
         return results

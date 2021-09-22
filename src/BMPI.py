@@ -385,6 +385,24 @@ def gather_and_store_skipped_blocks():
         print("Error message: {}".format(str(ex)))
         sys.exit(1)
 
+
+@cli.command()       
+def update_pools_data_json():
+    '''
+    Loop over gathered blocks to attribute a pool name, update pools.json
+    if a new payout address if found for a mining pool.
+    Does not store any results in Elasticsearch.
+    '''
+    BMPI = BMPIFunctions(config=config, logger=logger)
+    try:
+        print("Start updating pools.json")
+        BMPI.updatePoolDataWithPayoutAddressData()
+        print("Done.")
+    except Exception as ex:
+        print("An error occured:")
+        print("Error message: {}".format(str(ex)))
+        sys.exit(1)
+
 @cli.command()    
 def test_key_to_address():
     '''
