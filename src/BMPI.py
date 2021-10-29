@@ -449,6 +449,21 @@ def test_key_to_address():
         print("An error occured:")
         print("Error message: {}".format(str(ex)))
         sys.exit(1)
+ 
+@cli.command()  
+def compile_pool_name_files():
+    '''
+    Compiles a list of all the known mining pools based on
+    '''
+    BMPI = BMPIFunctions(config=config, logger=logger)
+    try:
+        print("Creates a list of pool names in a json file of known mining pools")
+        BMPI.compilePoolNameFiles()
+        print("Done.")
+    except Exception as ex:
+        print("An error occured:")
+        print("Error message: {}".format(str(ex)))
+        sys.exit(1)
         
 
 if __name__ == '__main__':

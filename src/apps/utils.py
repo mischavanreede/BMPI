@@ -370,6 +370,14 @@ class Utils():
             json.dump(my_json, outfile, sort_keys=True, indent=4)
         logger.info("Done writing data to file.")
    
-        
-        
+    def load_json_file(file_path, logger):
+        logger.debug("Trying to load [{}] file into memory.".format(file_path))  
+        try:
+            with open(file_path, mode='r', encoding="utf8") as file:
+                data = json.load(file)
+            logger.debug("File loaded, returning data.")
+            return data
+        except IOError:
+            logger.error("Failed to load file.")
+            return None
         

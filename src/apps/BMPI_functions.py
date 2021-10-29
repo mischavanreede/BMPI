@@ -640,6 +640,98 @@ class BMPIFunctions():
         self.es_controller.delete_doc(index=index, doc_type="_doc", doc_id=doc_id)
         self.logger.info("Document deleted.")
         
+    def compilePoolNameFiles(self):
+        # load pools.json in vars
+        
+        # Known pools folder base path
+        base_path = "../known-pools/"
+        current_path = Utils.getCurrentPath()
+    
+        # known pools file data
+        B10C_known_pools_file_path =            base_path + "data/0xB10C.json"
+        blockchain_com_known_pools_file_path =  base_path + "data/blockchain-com.json"
+        btc_com_known_pools_file_path =         base_path + "data/btc-com.json"
+        my_pools_file_path =                    base_path + "pools.json"
+        
+        # in memory variables.
+        B10C_data = Utils.load_json_file(file_path = B10C_known_pools_file_path, logger=self.logger)
+        blockchain_com_data = Utils.load_json_file(file_path = blockchain_com_known_pools_file_path, logger=self.logger)
+        btc_com_data = Utils.load_json_file(file_path = btc_com_known_pools_file_path, logger=self.logger)
+        my_pool_data = Utils.load_json_file(file_path = my_pools_file_path, logger=self.logger)
+        
+        # pool names filepaths
+        B10C_names =                base_path + "pool_names/0xB10C_names.json"
+        blockchaincom_names =       base_path + "pool_names/blockchaincom_names.json"
+        btccom_names =              base_path + "pool_names/btccom_names.json"
+        my_pool_names_path =        base_path + "pool_names/pool_names.json"
+        
+        # Handle 0xB10C data
+        pool_names = set()
+        pool_names.clear()
+        
+        for tag in B10C_data['coinbase_tags']:
+            name = B10C_data['coinbase_tags'][tag]['name']
+            pool_names.add(name)
+        
+        self.logger.info("Found {} unique pool names in 0xB10C data file.".format(len(pool_names)))
+        
+        with open(B10C_names, mode='w', encoding='utf-8') as outfile:
+            entry = {
+                    "pool_names": sorted(pool_names)
+                }
+            json.dump(entry, outfile, sort_keys=True, indent=4)
+        
+        # Handle Blockchain data
+        pool_names = set()
+        pool_names.clear()
+        
+        for tag in blockchain_com_data['coinbase_tags']:
+            name = blockchain_com_data['coinbase_tags'][tag]['name']
+            pool_names.add(name)
+        
+        self.logger.info("Found {} unique pool names in blockchain.com data file.".format(len(pool_names)))
+        
+        with open(blockchaincom_names, mode='w', encoding='utf-8') as outfile:
+            entry = {
+                    "pool_names": sorted(pool_names)
+                }
+            json.dump(entry, outfile, sort_keys=True, indent=4)
+        
+        # Handle BTC.com
+        pool_names = set()
+        pool_names.clear()
+        
+        for tag in btc_com_data['coinbase_tags']:
+            name = btc_com_data['coinbase_tags'][tag]['name']
+            pool_names.add(name)
+        
+        self.logger.info("Found {} unique pool names in blockchain.com data file.".format(len(pool_names)))
+        
+        with open(btccom_names, mode='w', encoding='utf-8') as outfile:
+            entry = {
+                    "pool_names": sorted(pool_names)
+                }
+            json.dump(entry, outfile, sort_keys=True, indent=4)
+        
+        # Handle My data
+        pool_names = set()
+        pool_names.clear()
+        
+        for tag in my_pool_data['coinbase_tags']:
+            name = my_pool_data['coinbase_tags'][tag]['name']
+            pool_names.add(name)
+        
+        self.logger.info("Found {} unique pool names in blockchain.com data file.".format(len(pool_names)))
+        
+        with open(my_pool_names_path, mode='w', encoding='utf-8') as outfile:
+            entry = {
+                    "pool_names": sorted(pool_names)
+                }
+            json.dump(entry, outfile, sort_keys=True, indent=4)
+            
+        self.logger.debug("Extracted all pool names from various pool data files.")
+        
+        
         
 
         
