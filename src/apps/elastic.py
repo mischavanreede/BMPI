@@ -494,8 +494,10 @@ class ElasticsearchIndexes():
                         "type": "keyword"
                         }                  
                     }                
-                }  
+                }
             }
+
+
         }
     
 

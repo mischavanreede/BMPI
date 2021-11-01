@@ -214,7 +214,7 @@ class BlockAnalyser():
     
     def updateMyPoolData(self, coinbase_message, payout_addresses, update_data):
         # Wrapped function call to call this method from outside and use only my_pool_data variable
-        # Should update pools.json if new payout address is encoutered.
+        # Should update pools.json if new payout address is encoutered and update_data is True.
         _ = self.__getPoolNameFromData(coinbase_message, payout_addresses, self.my_pool_data, update_data)
         return     
     

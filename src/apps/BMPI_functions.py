@@ -397,8 +397,8 @@ class BMPIFunctions():
     
     def updatePoolDataWithPayoutAddressData(self):
         
-        start_height = 145397
-        end_height = 700000#145400
+        start_height = 700000
+        end_height = 707071
         block_data_index = "blocks_from_scrapers_updated"
         skipped_heights = []
         self.block_analyser = BlockAnalyser(config=self.config, logger=self.logger)
