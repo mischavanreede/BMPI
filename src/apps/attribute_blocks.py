@@ -26,7 +26,7 @@ class BlockAnalyser():
         btc_com_known_pools_file_path =         base_path + "data/btc-com.json"
     
         # My pool data1
-        my_pools_file_path =  base_path + "pools.json"
+        my_pools_file_path =  base_path + "updated_pools.json"
         my_updated_pools_file_path =  base_path + "updated_pools.json"
         
         B10C_data = {
