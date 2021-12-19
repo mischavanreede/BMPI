@@ -175,8 +175,8 @@ class BlockAnalyser():
             name = list(coinbase_tag_matches)[0]
             if name_matches == 1:
                 pool_name_attribution["pool_name"] = name
-                pool_name_attribution["payout_addresses_matches"] = list(coinbase_tag_matches)
-                pool_name_attribution["coinbase_tag_matches"] = []
+                pool_name_attribution["payout_addresses_matches"] = []
+                pool_name_attribution["coinbase_tag_matches"] = list(coinbase_tag_matches)
                 
                 # If data is to be updated and there is only 1 payout address, 
                 # -> add this address to my_data and local file.

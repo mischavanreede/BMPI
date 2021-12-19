@@ -381,3 +381,81 @@ class Utils():
             logger.error("Failed to load file.")
             return None
         
+    
+    def countPayoutAddressInDataFiles(logger):
+        # Keep the weird characters of F2Pool in mind,
+        # maybe change encoding when opening files.
+        logger.info("Combining pool data into combined_data.json")
+        logger.debug("Loading json file data.")
+        logger.debug("Current path: {}".format(Utils.getCurrentPath()))
+        
+        cur_path = os.path.dirname(__file__)
+        
+        with open(cur_path + '/../../known-pools/data/blockchain-com.json', mode='r', encoding='utf-8') as blockchain_com_file:
+            blockchain_com_json = json.load(blockchain_com_file)
+            
+        with open(cur_path + '/../../known-pools/data/btc-com.json', mode='r', encoding='utf-8') as btc_com_file:
+            btc_com_json = json.load(btc_com_file)
+            
+        with open(cur_path + '/../../known-pools/data/0xB10c.json', mode='r', encoding='utf-8') as B10c_file:
+            B10c_json = json.load(B10c_file)
+        
+        with open(cur_path + '/../../known-pools/pools.json', mode='r', encoding='utf-8') as initial_file:
+            initial_json = json.load(initial_file)
+       
+        with open(cur_path + '/../../known-pools/updated_pools.json', mode='r', encoding='utf-8') as updated_file:
+            updated_json = json.load(updated_file)
+                  
+            
+        logger.debug("File data loaded.")
+        
+        logger.debug("Printing number of addresses in each file.")
+        logger.info("Number of addresses in blockchain.com file: {}".format(len(blockchain_com_json['payout_addresses'])))
+        logger.info("Number of addresses in btc.com file: {}".format(len(btc_com_json['payout_addresses'])))
+        logger.info("Number of addresses in 0xb10c file: {}".format(len(B10c_json['payout_addresses'])))
+        logger.info("Number of addresses in initial pool data file: {}".format(len(initial_json['payout_addresses'])))
+        logger.info("Number of addresses in updated pool data file: {}".format(len(updated_json['payout_addresses'])))
+    
+        logger.debug("calculating union of addresses for external data files")
+        address_union_json = {
+                "payout_addresses" : {
+                }
+            }
+        for json_data in [blockchain_com_json, btc_com_json, B10c_json]:
+            
+            for addr in json_data["payout_addresses"]:
+                if addr not in address_union_json["payout_addresses"]:
+                    address_union_json["payout_addresses"][addr] = json_data["payout_addresses"][addr]       
+        logger.debug("Calculating address union complete")
+        logger.info("Union contains {} addresses".format(len(address_union_json["payout_addresses"])))
+        
+        logger.debug("Calculating intersection")
+        external_json_files =[blockchain_com_json, btc_com_json, B10c_json]
+        addr_intersection = [addr for addr in external_json_files[0]['payout_addresses'] if all([addr in d['payout_addresses'] for d in external_json_files[1:]])]
+        logger.info("Intersection contains {} addresses".format(len(addr_intersection)))
+        
+        with open(cur_path + '/../../known-pools/pool_names/pool_names', mode='r', encoding='utf-8') as pool_name_file:
+            pool_name_json = json.load(pool_name_file)
+        
+        pool_addresses_json = {}
+        
+        for name in pool_name_json["pool_names"]:
+            logger.info("Counting address instances for pool name: {}".format(name))
+            count = 0
+            
+            pool_addresses_json[name] = []
+            
+            for addr in updated_json["payout_addresses"]:
+                if name == updated_json["payout_addresses"][addr]["name"]:
+                    count += 1
+                    pool_addresses_json[name].append(addr)
+            logger.debug("Found {} addresses for pool {}".format(count, name))
+            pool_name_json["number_of_addresses"][name] = count
+            
+        logger.debug("Writing results to files")
+        
+        with open(cur_path + '/../../known-pools/pool_names/pool_names.json', mode='w', encoding='utf-8') as outfile:
+            json.dump(pool_name_json, outfile, sort_keys=True, indent=4)
+        
+        with open(cur_path + '/../../known-pools/pool_addresses.json', mode='w', encoding='utf-8') as outfile:
+            json.dump(pool_addresses_json, outfile, sort_keys=True, indent=4)

@@ -342,7 +342,6 @@ def combine_known_pool_data():
 
 @cli.command()
 @click.option('--run_id', default=None, type=str, help='Enter a run_id (str), by default it uses current date and time.')
-@click.option('--update_pool_data', is_flag=True, help='Use this flag to update the pools.json with pool payout addresses during analysis.')
 @click.option('--start_height', type=int, help='Start height of block to stored block to be analysed.')
 @click.option('--end_height', type=int, help='Height of the last block to be analysed.')
 def attribute_pool_names(run_id, update_pool_data, start_height, end_height):
@@ -356,7 +355,7 @@ def attribute_pool_names(run_id, update_pool_data, start_height, end_height):
     try:
         print("Attributing pool names to stored blocks.")
         print("Storing results in seperate index")
-        # Stored on server: 0 / 700000
+        # Stored on server: 0 / 707071
         # Stored at home: 694996 / 699329
         
         BMPI.attributePoolNames(run_id=run_id,
@@ -453,12 +452,27 @@ def test_key_to_address():
 @cli.command()  
 def compile_pool_name_files():
     '''
-    Compiles a list of all the known mining pools based on
+    Compiles a list of all the known mining pools based on data from external pool data files
     '''
     BMPI = BMPIFunctions(config=config, logger=logger)
     try:
         print("Creates a list of pool names in a json file of known mining pools")
         BMPI.compilePoolNameFiles()
+        print("Done.")
+    except Exception as ex:
+        print("An error occured:")
+        print("Error message: {}".format(str(ex)))
+        sys.exit(1)
+
+@cli.command()  
+def count_payout_addresses():
+    '''
+    Compiles a list of all the known mining pools based on
+    '''
+
+    try:
+        print("Counting # of payout addresses in the various pool data files")
+        Utils.countPayoutAddressInDataFiles(logger=logger)
         print("Done.")
     except Exception as ex:
         print("An error occured:")
