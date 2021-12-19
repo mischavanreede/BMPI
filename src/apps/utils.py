@@ -434,7 +434,7 @@ class Utils():
         addr_intersection = [addr for addr in external_json_files[0]['payout_addresses'] if all([addr in d['payout_addresses'] for d in external_json_files[1:]])]
         logger.info("Intersection contains {} addresses".format(len(addr_intersection)))
         
-        with open(cur_path + '/../../known-pools/pool_names/pool_names', mode='r', encoding='utf-8') as pool_name_file:
+        with open(cur_path + '/../../known-pools/pool_names/pool_names.json', mode='r', encoding='utf-8') as pool_name_file:
             pool_name_json = json.load(pool_name_file)
         
         pool_addresses_json = {}
