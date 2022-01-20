@@ -20,7 +20,6 @@ Elasticsearch mapping information: https://www.elastic.co/guide/en/elasticsearch
 
 import sys
 import time
-import json
 import elasticsearch
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
@@ -68,7 +67,6 @@ class ElasticsearchController():
     def __create_all_indices(self):
         """
         Attempts to create all specified indices in the elasticsearch instance. Skips indices that already exist.
-        TODO: Add settings for each index
     
         Returns
         -------

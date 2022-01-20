@@ -362,17 +362,10 @@ class BMPIFunctions():
         
         self.logger.info("Found a total of {} reasons for skipping blocks.".format(len(skip_reasons)))
         self.logger.info("Namely: {}".format(list(skip_reasons)))
-        
-        # total_skipped_blocks = len(skipped_blocks) 
-        # print("first block:")
-        # Utils.prettyPrint(skipped_blocks[0])
-        # print("last block:")
-        # Utils.prettyPrint(skipped_blocks[total_skipped_blocks-1])
-        
+              
         success = 0
         failed = 0
-        
-        
+               
         for record in skipped_blocks:
             # Trying to re-gather skipped block
             if (self.gatherSpecificBlock(block_height=record["data"]["block_height"],
@@ -645,7 +638,6 @@ class BMPIFunctions():
         
         # Known pools folder base path
         base_path = "../known-pools/"
-        current_path = Utils.getCurrentPath()
     
         # known pools file data
         B10C_known_pools_file_path =            base_path + "data/0xB10C.json"

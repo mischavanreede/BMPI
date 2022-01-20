@@ -6,8 +6,6 @@ Created on Wed Jun  9 15:09:53 2021
 
 https://www.nylas.com/blog/use-python-requests-module-rest-apis/
 
-TODO: Handle various errors: https://dev.btc.com/docs/js#api-authentication
-
 
 """
 

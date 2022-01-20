@@ -1,5 +1,7 @@
 # BMPI
-BMPI: Bitcoin Mining Payout Inspector. A repository for hosting files that are used to analyse the mining rewards on the Bitcoin blockchain. This project is part of my Master graduation process at the Radboud University.
+BMPI: Bitcoin Mining Payout Inspector. A repository for hosting files from the BMPI application. This application was developed as part of my Master graduation research project at the Radboud University. The BMPI application is used to analyse blocks from the Bitcoin blockchain in order to calculate the hash rate distribution between various known mining pools in the bitcoin mining network. 
+
+
 
 
 Befor running, install requirements as follows:

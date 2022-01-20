@@ -5,22 +5,6 @@ Bitcoin Mining Payout Inspector
 
 @author: Mischa van Reede
 
-x Disconnected two scrapers
-x get mining pool btc address from both scrapers 
-x update pool_data.json (Add f2pool message to pool_data.json, etc.)
-x add binance pool
-x check for message match, check for btc address match
-x add btc address if missing
-- save block data for manual inspection if btc address match, but no message match; So that this message can be added manually.
-- Think about settings for blocks index (with variables such as; height, hash, prev hash, pool_name, mining pool btc address)
-- Think about settings for mining pool index (name, number of blocks, latest mined block, receiving btc address, sub-mining addresses, share of rewards per mining address) 
-- (make abstract scraper class: https://www.youtube.com/watch?v=PDMe3wgAsWg)
-
-x fix logging errors when trying to log the fish symbol and other non ascii symbols.
-x update pool_data.json to allow for multiple coinbase tags for the same mining pool (e.g. 'Mined by AntPool' and 'Mined By AntPool' and '/AntPool/') 
-
-
-
 """
 
 
@@ -54,8 +38,6 @@ def initialize_config():
 def initialize_logger(config, DEBUG): #For logging, look at: https://docs.python.org/3/howto/logging.html  and  https://docs.python.org/3/howto/logging.html#logging-advanced-tutorial
     """
     A method that initializes logging
-    # https://docs.python.org/3/howto/logging-cookbook.html#logging-to-multiple-destinations
-    https://www.youtube.com/watch?v=jxmzY9soFXg
 
     Levels:
         DEBUG:      Detailed information, typically of interest only when diagnosing problems.
@@ -168,7 +150,7 @@ def gather_scraper_data(start_height, stop_height, start_hash, blocks_stored, bl
 @click.confirmation_option(prompt='Are you sure you want to delete all data from the elasticsearch instance?')
 def delete_all_stored_data():
     '''
-    Deletes the data from a specified index in elasticsearch. If 
+    Deletes the data from a specified index in elasticsearch. 
     '''
     BMPI = BMPIFunctions(config=config, logger=logger)
     
@@ -329,7 +311,6 @@ def combine_known_pool_data():
         - blockchain.com's known-pools file
         - btc.com's known-pools file
         - known-pools file from 0xB10C (BTC core developer)
-        - known-pools file from Sjors Provoost (BTC core developer)
     '''
     try:
         print("Combining known-pools data files.")
@@ -355,8 +336,6 @@ def attribute_pool_names(run_id, update_pool_data, start_height, end_height):
     try:
         print("Attributing pool names to stored blocks.")
         print("Storing results in seperate index")
-        # Stored on server: 0 / 707071
-        # Stored at home: 694996 / 699329
         
         BMPI.attributePoolNames(run_id=run_id,
                                 start_height=start_height, 

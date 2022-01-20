@@ -79,23 +79,6 @@ class Utils():
             # write to file
             json.dump(file_data, file, indent=4)
     
-    # def addCoinbaseTagToPoolData(coinbase_tag, pool_name):
-    #     pool_data_path = '../pools/new_pool_data.json'
-    #     with open(pool_data_path, 'r+') as file:
-    #         # load file into a dict
-    #         file_data = json.load(file)
-    #         # add coinbase tag to pool data entry
-            
-            
-            
-    #         #file_data['mining_pools'][pool_name]['pool_addresses'].append(bitcoin_address)
-            
-            
-            
-    #         # set file pointer to start of file
-    #         file.seek(0)
-    #         # write to file
-    #         json.dump(file_data, file, indent=4)
         
     
     def getPoolName(coinbase_message, payout_address, logger):
@@ -297,8 +280,7 @@ class Utils():
         return wrapper
     
     def combineKnownPoolDataFiles(logger):
-        # Keep the weird characters of F2Pool in mind,
-        # maybe change encoding when opening files.
+
         logger.info("Combining pool data into combined_data.json")
         logger.debug("Loading json file data.")
         logger.debug("Current path: {}".format(Utils.getCurrentPath()))
@@ -383,8 +365,7 @@ class Utils():
         
     
     def countPayoutAddressInDataFiles(logger):
-        # Keep the weird characters of F2Pool in mind,
-        # maybe change encoding when opening files.
+
         logger.info("Combining pool data into combined_data.json")
         logger.debug("Loading json file data.")
         logger.debug("Current path: {}".format(Utils.getCurrentPath()))
